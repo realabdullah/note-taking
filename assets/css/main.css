@@ -1,0 +1,59 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --font-display: "Source Code Pro", "sans-serif";
+
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #F5F7FA;
+  --color-neutral-100: #F3F5F8;
+  --color-neutral-200: #E0E4EA;
+  --color-neutral-300: #CACFD8;
+  --color-neutral-400: #99A0AE;
+  --color-neutral-500: #717784;
+  --color-neutral-600: #525866;
+  --color-neutral-700: #2B303B;
+  --color-neutral-800: #232530;
+  --color-neutral-900: #191B25;
+  --color-neutral-950: #0E121B;
+
+  --color-blue-50: #EBF1FF;
+  --color-blue-500: #335CFF;
+  --color-blue-700: #2547D0;
+
+  --color-green-100: #D1FBE9;
+  --color-green-500: #21C16B;
+
+  --color-red-100: #FFD5D8;
+  --color-red-500: #FB3748;
+
+  /* --spacing-0: 0;
+  --spacing-025: 2px;
+  --spacing-050: 4px;
+  --spacing-075: 6px;
+  --spacing-100: 8px;
+  --spacing-150: 12px;
+  --spacing-200: 16px;
+  --spacing-250: 20px;
+  --spacing-300: 24px;
+  --spacing-400: 32px;
+  --spacing-500: 40px;
+  --spacing-600: 48px;
+  --spacing-800: 64px;
+  --spacing-1000: 80px; */
+
+  --radius: initial
+  --radius-0: 0;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+  --radius-24: 24px;
+  --radius-full: 999px;
+
+  --shadow-small: 0px 4px 6px 0px #F0F0F099;
+  --shadow-large: 0px 8px 12px 0px #F0F0F099;
+}
