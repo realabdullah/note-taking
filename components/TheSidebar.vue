@@ -19,26 +19,33 @@
 
 	const isDark = useIsDark();
 
-	const selectedTags = ref<string[]>([]);
+	const selectedTags = computed(() => {
+		const tags = useRoute().query.tags as string;
+		return tags
+			? tags
+					.split(",")
+					.map(tag => tag.trim())
+					.filter(tag => savedTags.some(savedTag => savedTag.toLowerCase() === tag.toLowerCase()))
+			: [];
+	});
 
+	const router = useRouter();
 	const handleTagClick = (tag: string) => {
-		if (selectedTags.value.includes(tag)) {
-			selectedTags.value = selectedTags.value.filter(t => t !== tag);
+		const index = selectedTags.value.indexOf(tag);
+		if (index === -1) {
+			router.push({ query: { tags: [...selectedTags.value, tag].join(",") } });
 		} else {
-			selectedTags.value = [...selectedTags.value, tag];
+			const tags = selectedTags.value.filter(t => t !== tag);
+			router.push({ query: { tags: tags.join(",") || undefined } });
 		}
-
-		const router = useRouter();
-		const tags = selectedTags.value.join(",");
-		router.push({ query: { tags: tags || undefined } });
 	};
 </script>
 
 <template>
 	<div class="h-dvh w-[272px] border-r border-neutral-200 dark:border-neutral-800 p-4 overflow-auto">
-		<div class="mb-4">
+		<NuxtLink to="/dashboard" class="block mb-4">
 			<CustomIcon name="logo" width="95" height="28" :fill="isDark ? '#FFFFFF' : '#0E121B'" />
-		</div>
+		</NuxtLink>
 
 		<nav class="space-y-1 mb-2">
 			<template v-for="nav in navs" :key="nav.link">
