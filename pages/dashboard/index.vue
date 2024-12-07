@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-definePageMeta({
-    name: 'home',
-    layout: 'dashboard',
-})
+	definePageMeta({
+		name: "home",
+		layout: "dashboard",
+	});
 </script>
 
 <template>
-    <div></div>
+	<div></div>
 </template>

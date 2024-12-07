@@ -23,7 +23,7 @@
 
 	const handleTagClick = (tag: string) => {
 		if (selectedTags.value.includes(tag)) {
-			selectedTags.value = selectedTags.value.filter((t) => t !== tag);
+			selectedTags.value = selectedTags.value.filter(t => t !== tag);
 		} else {
 			selectedTags.value = [...selectedTags.value, tag];
 		}

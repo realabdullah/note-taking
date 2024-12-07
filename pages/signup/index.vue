@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-definePageMeta({
-	name: "sign-up",
-	layout: "auth",
-});
+	definePageMeta({
+		name: "sign-up",
+		layout: "auth",
+	});
 
-const isPasswordHidden = ref(true);
-const state = reactive<Partial<authFormSchemaType>>({
-	email: "",
-	password: "",
-});
+	const isPasswordHidden = ref(true);
+	const state = reactive<Partial<authFormSchemaType>>({
+		email: "",
+		password: "",
+	});
 
-const schema = authFormSchema;
+	const schema = authFormSchema;
 </script>
 
 <template>
