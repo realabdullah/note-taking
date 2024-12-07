@@ -2097,6 +2097,16 @@
     "@vueuse/shared" "11.3.0"
     vue-demi ">=0.14.10"
 
+"@vueuse/core@12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-12.0.0.tgz#9b07923ca24a6b5873bf614888c7d0f796cef7d2"
+  integrity sha512-C12RukhXiJCbx4MGhjmd/gH52TjJsc3G0E0kQj/kb19H3Nt6n1CA4DRWuTdWWcaFRdlTe0npWDS942mvacvNBw==
+  dependencies:
+    "@types/web-bluetooth" "^0.0.20"
+    "@vueuse/metadata" "12.0.0"
+    "@vueuse/shared" "12.0.0"
+    vue "^3.5.13"
+
 "@vueuse/core@^10.11.0", "@vueuse/core@^10.8.0":
   version "10.11.1"
   resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-10.11.1.tgz#15d2c0b6448d2212235b23a7ba29c27173e0c2c6"
@@ -2126,6 +2136,22 @@
   resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-11.3.0.tgz#be7ac12e3016c0353a3667b372a73aeeee59194e"
   integrity sha512-pwDnDspTqtTo2HwfLw4Rp6yywuuBdYnPYDq+mO38ZYKGebCUQC/nVj/PXSiK9HX5otxLz8Fn7ECPbjiRz2CC3g==
 
+"@vueuse/metadata@12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-12.0.0.tgz#ba6c279528fdb3c821825302f8a45c5ce327db01"
+  integrity sha512-Yzimd1D3sjxTDOlF05HekU5aSGdKjxhuhRFHA7gDWLn57PRbBIh+SF5NmjhJ0WRgF3my7T8LBucyxdFJjIfRJQ==
+
+"@vueuse/nuxt@12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/nuxt/-/nuxt-12.0.0.tgz#6bd9840becd053657c6a7323a42db258cd9ecf71"
+  integrity sha512-ZSxphoQAX5/EzIUKADcqmoKOpIya7Qi/Lma2iGuLv0YdEAdIcyhTvJ3HwboSuVCPzzovyitY1Ozo+6b0nZ5j5Q==
+  dependencies:
+    "@nuxt/kit" "^3.14.1592"
+    "@vueuse/core" "12.0.0"
+    "@vueuse/metadata" "12.0.0"
+    local-pkg "^0.5.1"
+    vue "^3.5.13"
+
 "@vueuse/shared@10.11.1", "@vueuse/shared@^10.11.0":
   version "10.11.1"
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-10.11.1.tgz#62b84e3118ae6e1f3ff38f4fbe71b0c5d0f10938"
@@ -2139,6 +2165,13 @@
   integrity sha512-P8gSSWQeucH5821ek2mn/ciCk+MS/zoRKqdQIM3bHq6p7GXDAJLmnRRKmF5F65sAVJIfzQlwR3aDzwCn10s8hA==
   dependencies:
     vue-demi ">=0.14.10"
+
+"@vueuse/shared@12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-12.0.0.tgz#8d765a1c5038cc4ea29e9bbb622b2d4fd3365aef"
+  integrity sha512-3i6qtcq2PIio5i/vVYidkkcgvmTjCqrf26u+Fd4LhnbBmIT6FN8y6q/GJERp8lfcB9zVEfjdV0Br0443qZuJpw==
+  dependencies:
+    vue "^3.5.13"
 
 abbrev@1:
   version "1.1.1"

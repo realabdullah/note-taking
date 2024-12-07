@@ -11,6 +11,7 @@
 	});
 
 	const schema = authFormSchema;
+	const isDark = useIsDark();
 </script>
 
 <template>
@@ -48,10 +49,12 @@
 								@click="isPasswordHidden = !isPasswordHidden"
 							>
 								<template #leading>
-									<UIcon
-										:name="isPasswordHidden ? 'i-custom-show-password' : 'i-custom-hide-password'"
-										:customize="customiseIcon"
-										size="24"
+									<CustomIcon
+										:name="isPasswordHidden ? 'show-password' : 'hide-password'"
+										:fill="isDark ? '#FFFFFF' : '#2B303B'"
+										:stroke="isDark ? '#FFFFFF' : '#2B303B'"
+										width="20"
+										height="20"
 									/>
 								</template>
 							</UButton>
@@ -79,7 +82,7 @@
 				block
 			>
 				<template #leading>
-					<UIcon name="i-custom-google" :customize="customiseIcon" class="text-white" size="24" />
+					<CustomIcon name="google" :fill="isDark ? '#FFFFFF' : '#0E121B'" />
 				</template>
 			</UButton>
 

@@ -1,4 +1,6 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+const isDark = useIsDark();
+</script>
 
 <template>
   <div
@@ -8,7 +10,7 @@
       class="w-full max-w-[540px] mx-auto bg-white dark:bg-neutral-950 min-h-[370px] rounded-12 border border-neutral-200 dark:border-neutral-800 shadow-large dark:shadow-transparent overflow-auto px-4 py-10 md:p-12 lg:p-12"
     >
       <div class="mb-6 flex items-center justify-center">
-        <UIcon name="i-custom-logo" :customize="customiseIcon" size="30" />
+        <CustomIcon name="logo" width="95" height="28" :fill="isDark ? '#FFFFFF' : undefined" />
       </div>
 
       <NuxtPage />

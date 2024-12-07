@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: false,
-  modules: ["@nuxt/ui"],
+  modules: ["@nuxt/ui", "@vueuse/nuxt"],
   css: ["~/assets/css/main.css"],
   icon: {
     customCollections: [
