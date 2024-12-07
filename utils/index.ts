@@ -66,3 +66,8 @@ export const replaceIconColors = (
 
   return modifiedSvg;
 };
+
+export const customiseIcon = (content: string): string => {
+  const svg = content;
+  return replaceIconColors(svg);
+};
