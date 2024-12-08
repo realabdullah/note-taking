@@ -4,7 +4,7 @@
 
 <template>
 	<div
-		class="flex items-center justify-between gap-3 border-b border-neutral-200 dark:border-neutral-800 py-[18.5px] px-8"
+		class="sticky top-0 bg-white dark:bg-black z-50 flex items-center justify-between gap-3 border-b border-neutral-200 dark:border-neutral-800 py-[18.5px] px-8"
 	>
 		<h1 class="font-bold text-neutral-950 dark:text-white text-2xl">All Notes</h1>
 

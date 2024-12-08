@@ -61,4 +61,4 @@ export const slugify = (text: string): string => {
 	return text?.toString()?.toLowerCase()?.replace(/\s/g, "-");
 };
 
-export const formatDate = (date: Date | string) => useDateFormat(date, 'Do, MMMM YYYY. h:mm A');
+export const formatDate = (date: Date | string) => useDateFormat(date, "Do, MMMM YYYY. h:mm A");

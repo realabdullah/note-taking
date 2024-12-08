@@ -7,13 +7,21 @@
 	const isDark = useIsDark();
 	const route = useRoute();
 
-	const note = computed(() => {
-		return notes.find(note => slugify(note.title) === route.params.title);
+	const note = reactive({
+		title: "",
+		content: "",
+		tags: [],
+		lastEdited: new Date(),
+	});
+
+	onMounted(() => {
+		const dNote = notes.find(note => slugify(note.title) === route.params.title);
+		Object.assign(note, dNote);
 	});
 </script>
 
 <template>
-	<div>
+	<div class="py-6 px-5 sticky top-0 bg-white dark:bg-black z-50">
 		<h1 class="font-bold text-2xl text-neutral-950 dark:text-white">{{ note?.title ?? "N/A" }}</h1>
 
 		<div class="mt-4">
@@ -23,7 +31,7 @@
 					<span class="font-normal text-sm text-neutral-700 dark:text-neutral-300">Tags</span>
 				</div>
 
-				<p class="">{{ note?.tags?.join(", ") ?? "N/A" }}</p>
+				<p class="">{{ note?.tags?.length ? note?.tags?.join(", ") : "N/A" }}</p>
 			</div>
 			<div class="mt-2 flex items-center gap-3">
 				<div class="flex items-center gap-[6px] w-[115px]">
@@ -38,7 +46,17 @@
 		<div class="my-4">
 			<USeparator color="neutral" :ui="{ border: 'border-neutral-200 dark:border-neutral-800' }" />
 		</div>
+	</div>
 
-		<div class="prose dark:prose-dark max-w-none" v-html="note?.content ?? 'N/A'"></div>
+	<div class="px-5 min-h-[50dvh] w-full overflow-hidden">
+		<UTextarea
+			v-model="note.content"
+			placeholder="Type something..."
+			class=""
+			size="xl"
+			variant="none"
+			autofocus
+			autoresize
+		/>
 	</div>
 </template>

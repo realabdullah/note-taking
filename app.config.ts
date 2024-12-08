@@ -3,5 +3,11 @@ export default defineAppConfig({
 		colors: {
 			primary: "blue",
 		},
+		textarea: {
+			slots: {
+				root: "w-full h-full",
+				base: ["h-full", "w-full"],
+			},
+		},
 	},
 });
