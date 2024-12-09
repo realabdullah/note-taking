@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 	ssr: false,
-	modules: ["@nuxt/ui", "@vueuse/nuxt"],
+	modules: ["@nuxt/ui", "@vueuse/nuxt", "@pinia/nuxt"],
 	css: ["~/assets/css/main.css"],
 	icon: {
 		customCollections: [
@@ -29,7 +29,7 @@ export default defineNuxtConfig({
 		},
 	},
 	imports: {
-		dirs: ["utils", "utils/**", "assets/constants", "assets/constants/**"],
+		dirs: ["utils", "utils/**", "assets/constants", "assets/constants/**", "types"],
 	},
 	compatibilityDate: "2024-11-01",
 	devtools: { enabled: true },

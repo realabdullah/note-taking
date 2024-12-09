@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 	definePageMeta({
-		name: "archived",
+		name: "notes",
 		layout: "dashboard",
 	});
 </script>

@@ -1,5 +1,6 @@
-export const notes = [
+export const notesData = [
 	{
+		slug: slugify("React Performance Optimization"),
 		title: "React Performance Optimization",
 		tags: ["Dev", "React"],
 		content:
@@ -8,6 +9,7 @@ export const notes = [
 		isArchived: false,
 	},
 	{
+		slug: slugify("Japan Travel Planning"),
 		title: "Japan Travel Planning",
 		tags: ["Travel", "Personal"],
 		content:
@@ -16,6 +18,7 @@ export const notes = [
 		isArchived: false,
 	},
 	{
+		slug: slugify("Favorite Pasta Recipes"),
 		title: "Favorite Pasta Recipes",
 		tags: ["Cooking", "Recipes"],
 		content:
@@ -24,6 +27,7 @@ export const notes = [
 		isArchived: false,
 	},
 	{
+		slug: slugify("TypeScript Migration Guide"),
 		title: "TypeScript Migration Guide",
 		tags: ["Dev", "React", "TypeScript"],
 		content:
@@ -32,6 +36,7 @@ export const notes = [
 		isArchived: true,
 	},
 	{
+		slug: slugify("Weekly Workout Plan"),
 		title: "Weekly Workout Plan",
 		tags: ["Fitness", "Health"],
 		content:
@@ -40,6 +45,7 @@ export const notes = [
 		isArchived: false,
 	},
 	{
+		slug: slugify("Gift Ideas"),
 		title: "Gift Ideas",
 		tags: ["Personal", "Shopping"],
 		content:
@@ -48,6 +54,7 @@ export const notes = [
 		isArchived: true,
 	},
 	{
+		slug: slugify("React Component Library"),
 		title: "React Component Library",
 		tags: ["Dev", "React"],
 		content:
@@ -56,6 +63,7 @@ export const notes = [
 		isArchived: true,
 	},
 	{
+		slug: slugify("Meal Prep Ideas"),
 		title: "Meal Prep Ideas",
 		tags: ["Cooking", "Health", "Recipes"],
 		content:
@@ -64,6 +72,7 @@ export const notes = [
 		isArchived: false,
 	},
 	{
+		slug: slugify("Reading List"),
 		title: "Reading List",
 		tags: ["Personal", "Dev"],
 		content:
@@ -72,6 +81,7 @@ export const notes = [
 		isArchived: false,
 	},
 	{
+		slug: slugify("Fitness Goals 2025"),
 		title: "Fitness Goals 2025",
 		tags: ["Fitness", "Health", "Personal"],
 		content:

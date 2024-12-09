@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 	const navs = [
-		{ title: "Home", icon: "home", link: "/dashboard" },
+		{ title: "Home", icon: "home", link: "/notes" },
 		{ title: "Search", icon: "search", link: "search" },
-		{ title: "Archived", icon: "archive", link: "/dashboard/archive" },
+		{ title: "Archived", icon: "archive", link: "/notes/archive" },
 		{ title: "Tags", icon: "tag", link: "tags" },
-		{ title: "Settings", icon: "settings", link: "/dashboard/settings" },
+		{ title: "Settings", icon: "settings", link: "/settings" },
 	];
 
 	const isDark = useIsDark();

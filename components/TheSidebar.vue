@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 	const navs = [
-		{ title: "All Notes", icon: "home", link: "/dashboard" },
-		{ title: "Archived Notes", icon: "archive", link: "/dashboard/archive" },
+		{ title: "All Notes", icon: "home", link: "/notes" },
+		{ title: "Archived Notes", icon: "archive", link: "/notes/archive" },
 	];
 
 	const savedTags = [
@@ -44,7 +44,7 @@
 <template>
 	<div class="col-span-2 h-dvh w-full border-r border-neutral-200 dark:border-neutral-800 p-4 pt-0 overflow-auto">
 		<div class="sticky top-0 pt-4 z-50 bg-white dark:bg-black">
-			<NuxtLink to="/dashboard" class="block mb-4">
+			<NuxtLink to="/notes" class="block mb-4">
 				<CustomIcon name="logo" width="95" height="28" :fill="isDark ? '#FFFFFF' : '#0E121B'" />
 			</NuxtLink>
 
@@ -53,7 +53,7 @@
 					<NuxtLink
 						:to="nav.link"
 						class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
-						active-class="bg-neutral-100 dark:bg-neutral-800"
+						:class="$route.path === nav.link ? 'bg-neutral-100 dark:bg-neutral-800' : ''"
 					>
 						<div class="flex items-center gap-2">
 							<CustomIcon
@@ -63,9 +63,9 @@
 								:fill="$route.path === nav.link ? '#335CFF' : isDark ? '#E0E4EA' : '#2B303B'"
 								:stroke="$route.path === nav.link ? '#335CFF' : isDark ? '#E0E4EA' : '#2B303B'"
 							/>
-							<span class="text-sm font-medium text-neutral-950 dark:text-neutral-200">{{
-								nav.title
-							}}</span>
+							<span class="text-sm font-medium text-neutral-950 dark:text-neutral-200">
+								{{ nav.title }}
+							</span>
 						</div>
 
 						<CustomIcon
