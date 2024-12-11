@@ -15,6 +15,13 @@
 		navigateTo({ name: "notes", query });
 	};
 
+	const tags = computed({
+		get: () => activeNote.value.tags.join(", "),
+		set: (value: string) => {
+			activeNote.value.tags = value.split(",").map(tag => tag.trim());
+		},
+	});
+
 	onMounted(() => {
 		const dNote = notes.value.find(note => note.slug === route.params.slug);
 		if (dNote) activeNote.value = { ...dNote };
@@ -94,27 +101,29 @@
 					:ui="{ root: 'w-full', base: 'w-full p-0 font-bold text-2xl text-neutral-950 dark:text-white' }"
 				/>
 
-				<div class="mt-4">
-					<div class="flex items-start gap-3">
-						<div class="flex items-center gap-[6px] w-[115px]">
+				<div class="mt-4 grid grid-cols-[115px_1fr] gap-2 items-center">
+					<div class="space-y-2">
+						<div class="flex items-center gap-[6px]">
 							<CustomIcon name="tag" width="16" height="16" :stroke="isDark ? '#E0E4EA' : '#2B303B'" />
 							<span class="font-normal text-sm text-neutral-700 dark:text-neutral-300">Tags</span>
 						</div>
-
-						<p class="font-normal text-sm text-neutral-400 dark:text-white">
-							{{
-								activeNote?.tags?.length
-									? activeNote?.tags?.join(", ")
-									: "Add tags separated by commas (e.g. Work, Planning)"
-							}}
-						</p>
-					</div>
-					<div class="mt-2 flex items-start gap-3">
-						<div class="flex items-center gap-[6px] w-[115px]">
+						<div class="flex items-center gap-[6px]">
 							<CustomIcon name="clock" width="16" height="16" :fill="isDark ? '#E0E4EA' : '#2B303B'" />
 							<span class="font-normal text-sm text-neutral-700 dark:text-neutral-300">Last edited</span>
 						</div>
+					</div>
 
+					<div class="space-y-2">
+						<UInput
+							v-model="tags"
+							variant="none"
+							size="lg"
+							placeholder="Add tags separated by commas (e.g. Work, Planning)"
+							:ui="{
+								root: 'w-full',
+								base: 'w-full p-0 font-normal text-sm text-neutral-400 dark:text-white',
+							}"
+						/>
 						<p class="font-normal text-sm text-neutral-400 dark:text-white">
 							{{
 								isNewNote

@@ -1,44 +1,15 @@
 <script lang="ts" setup>
+	import { useStore } from "~/stores";
+
 	const navs = [
 		{ title: "All Notes", icon: "home", link: "/notes" },
 		{ title: "Archived Notes", icon: "archive", link: "/notes/archive" },
 	];
 
-	const savedTags = [
-		"Cooking",
-		"Dev",
-		"Fitness",
-		"Health",
-		"Personal",
-		"React",
-		"Recipes",
-		"Shopping",
-		"Travel",
-		"Typescript",
-	];
+	const { tags, selectedTags } = storeToRefs(useStore());
+	const { handleTagClick } = useStore();
 
 	const isDark = useIsDark();
-
-	const selectedTags = computed(() => {
-		const tags = useRoute().query.tags as string;
-		return tags
-			? tags
-					.split(",")
-					.map(tag => tag.trim())
-					.filter(tag => savedTags.some(savedTag => savedTag.toLowerCase() === tag.toLowerCase()))
-			: [];
-	});
-
-	const router = useRouter();
-	const handleTagClick = (tag: string) => {
-		const index = selectedTags.value.indexOf(tag);
-		if (index === -1) {
-			router.push({ query: { tags: [...selectedTags.value, tag].join(",") } });
-		} else {
-			const tags = selectedTags.value.filter(t => t !== tag);
-			router.push({ query: { tags: tags.join(",") || undefined } });
-		}
-	};
 </script>
 
 <template>
@@ -85,7 +56,7 @@
 		<nav class="space-y-2 p-2">
 			<h6 class="text-sm font-medium text-neutral-500">Tags</h6>
 
-			<div v-for="tag in savedTags" :key="tag" class="space-y-1">
+			<div v-for="tag in tags" :key="tag" class="space-y-1">
 				<button
 					class="w-full flex items-center gap-2 py-2.5 px-3 rounded-lg cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
 					:class="{ 'bg-neutral-100 dark:bg-neutral-800': selectedTags.includes(tag) }"

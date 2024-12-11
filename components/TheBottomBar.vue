@@ -8,15 +8,10 @@
 	];
 
 	const isDark = useIsDark();
-	const route = useRoute();
-	const selectedMenu = ref<string>(`${route.path}`);
 
-	const onNavigate = (link: string) => {
-		selectedMenu.value = link;
-		if (link.startsWith("/")) {
-			navigateTo(link);
-		}
-	};
+	const { selectedMenu } = storeToRefs(useStore());
+	const { onNavigate } = useStore();
+	
 </script>
 
 <template>

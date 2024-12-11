@@ -19,10 +19,10 @@
 		]"
 	>
 		<div
-			class="px-4 h-full"
+			class="px-4 h-full overflow-y-auto"
 			:class="[
 				isDesktop
-					? 'border-r border-neutral-200 dark:border-neutral-800 col-span-3 overflow-x-hidden overflow-y-auto'
+					? 'border-r border-neutral-200 dark:border-neutral-800 col-span-3 overflow-x-hidden'
 					: 'bg-white dark:bg-black rounded-t-2xl cols-span-full overflow-hidden',
 			]"
 		>
