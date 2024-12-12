@@ -1,17 +1,29 @@
 <script lang="ts" setup>
 	const isDark = useIsDark();
 
-	const search = ref<string>("");
-
 	const route = useRoute();
-	const isArchiveRoute = computed(() => route.name === "archive");
+	const isArchiveRoute = computed(() => ["archive", "archived-note"].includes(route.name as string));
+
+	const { selectedTags, search } = storeToRefs(useStore());
 </script>
 
 <template>
 	<div
 		class="sticky top-0 bg-white dark:bg-black z-50 flex items-center justify-between gap-3 border-b border-neutral-200 dark:border-neutral-800 py-[18.5px] px-8"
 	>
-		<h1 class="font-bold text-neutral-950 dark:text-white text-2xl">
+		<h1 v-if="search" class="inline-flex font-bold text-neutral-600 dark:text-neutral-300 text-2xl">
+			Showing results for:
+			<span
+				class="block whitespace-nowrap overflow-hidden font-bold text-neutral-950 dark:text-white text-ellipsis w-[200px]"
+			>
+				"{{ search }}"
+			</span>
+		</h1>
+		<h1 v-else-if="$route.query.tags" class="font-bold text-neutral-600 dark:text-neutral-300 text-2xl">
+			{{ isArchiveRoute ? "Archived Notes" : "Notes " }} Tagged:
+			<span class="font-bold text-neutral-950 dark:text-white">"{{ selectedTags.join(", ") }}"</span>
+		</h1>
+		<h1 v-else class="font-bold text-neutral-950 dark:text-white text-2xl">
 			{{ isArchiveRoute ? "Archived Notes" : "All Notes" }}
 		</h1>
 

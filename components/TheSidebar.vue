@@ -2,8 +2,8 @@
 	import { useStore } from "~/stores";
 
 	const navs = [
-		{ title: "All Notes", icon: "home", link: "/notes" },
-		{ title: "Archived Notes", icon: "archive", link: "/notes/archive" },
+		{ title: "All Notes", icon: "home", link: "/notes", children: ["note"] },
+		{ title: "Archived Notes", icon: "archive", link: "/notes/archive", children: ["archived-note"] },
 	];
 
 	const { tags, selectedTags } = storeToRefs(useStore());
@@ -24,15 +24,30 @@
 					<NuxtLink
 						:to="nav.link"
 						class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
-						:class="$route.path === nav.link ? 'bg-neutral-100 dark:bg-neutral-800' : ''"
+						exact-active-class="bg-neutral-100 dark:bg-neutral-800"
+						:class="
+							nav.children.includes($route.name as string) ? 'bg-neutral-100 dark:bg-neutral-800' : ''
+						"
 					>
 						<div class="flex items-center gap-2">
 							<CustomIcon
 								:name="nav.icon"
 								width="20"
 								height="20"
-								:fill="$route.path === nav.link ? '#335CFF' : isDark ? '#E0E4EA' : '#2B303B'"
-								:stroke="$route.path === nav.link ? '#335CFF' : isDark ? '#E0E4EA' : '#2B303B'"
+								:fill="
+									nav.link === $route.path || nav.children.includes($route.name as string)
+										? '#335CFF'
+										: isDark
+											? '#E0E4EA'
+											: '#2B303B'
+								"
+								:stroke="
+									nav.link === $route.path || nav.children.includes($route.name as string)
+										? '#335CFF'
+										: isDark
+											? '#E0E4EA'
+											: '#2B303B'
+								"
 							/>
 							<span class="text-sm font-medium text-neutral-950 dark:text-neutral-200">
 								{{ nav.title }}
@@ -40,7 +55,7 @@
 						</div>
 
 						<CustomIcon
-							v-if="$route.path === nav.link"
+							v-if="nav.link === $route.path || nav.children.includes($route.name as string)"
 							name="chevron-right"
 							width="20"
 							height="20"
@@ -53,7 +68,7 @@
 			<USeparator color="neutral" :ui="{ border: 'border-neutral-200 dark:border-neutral-800' }" />
 		</div>
 
-		<nav class="space-y-2 p-2">
+		<nav v-if="tags && tags.length > 0" class="space-y-2 p-2">
 			<h6 class="text-sm font-medium text-neutral-500">Tags</h6>
 
 			<div v-for="tag in tags" :key="tag" class="space-y-1">

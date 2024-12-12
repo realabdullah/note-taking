@@ -27,6 +27,29 @@ export const useStore = defineStore("store", () => {
 	});
 	const isNewNote = computed(() => activeNote.value.slug.includes("new-note-"));
 
+	const search = ref<string>("");
+	const isArchiveRoute = computed(() => ["archive", "archived-note"].includes(route.name as string));
+	const filteredNotes = computed(() => {
+		let result = notes.value;
+
+		const tags = (route.query.tags as string)?.split(",");
+		if (tags) {
+			result = result.filter(note => tags.some(tag => note.tags.includes(tag)));
+		}
+
+		const normalizedSearchTerm = search.value.toLowerCase().trim();
+		if (normalizedSearchTerm) {
+			result = result.filter(note => {
+				const titleMatch = note.title.toLowerCase().includes(normalizedSearchTerm);
+				const contentMatch = note.content.toLowerCase().includes(normalizedSearchTerm);
+				const tagMatch = note.tags.some(tag => tag.toLowerCase().includes(normalizedSearchTerm));
+				return titleMatch || contentMatch || tagMatch;
+			});
+		}
+
+		return isArchiveRoute.value ? result.filter(note => note.isArchived) : result.filter(note => !note.isArchived);
+	});
+
 	const updateActiveNote = (note: NoteObj) => {
 		activeNote.value = { ...note };
 	};
@@ -42,6 +65,7 @@ export const useStore = defineStore("store", () => {
 
 	const saveNote = () => {
 		if (isNewNote.value) {
+			if (!activeNote.value.title.trim()) return;
 			activeNote.value.slug = slugify(activeNote.value.title);
 			notes.value.splice(0, 0, activeNote.value);
 			navigateTo({ name: "note", query: route.query, params: { slug: activeNote.value.slug } });
@@ -78,8 +102,17 @@ export const useStore = defineStore("store", () => {
 	const deleteNote = () => {
 		const note = notes.value.find(note => note.slug === activeNote.value.slug);
 		if (note) {
+			const path = useRoute().name === "note" ? "/notes" : "/notes/archive";
 			notes.value = notes.value.filter(note => note.slug !== activeNote.value.slug);
-			navigateTo({ name: "notes", query: route.query });
+			activeNote.value = {
+				slug: "",
+				title: "",
+				content: "",
+				tags: [],
+				lastEdited: new Date(),
+				isArchived: false,
+			};
+			return navigateTo({ path, query: route.query });
 		}
 	};
 
@@ -118,6 +151,8 @@ export const useStore = defineStore("store", () => {
 
 	return {
 		selectedMenu,
+		search,
+		filteredNotes,
 		activeNote,
 		notes,
 		tags,

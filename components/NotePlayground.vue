@@ -154,7 +154,7 @@
 
 			<div
 				v-if="isDesktop"
-				class="sticky right-0 left-0 bottom-0 mx-2 bg-white lg:mx-5 border-t border-neutral-200 py-4 space-x-4"
+				class="sticky right-0 left-0 bottom-0 mx-2 bg-white dark:bg-black lg:mx-5 border-t border-neutral-200 dark:border-neutral-800 py-4 space-x-4"
 			>
 				<button
 					class="bg-blue-500 text-white rounded-lg py-3 px-4 cursor-pointer"
@@ -163,7 +163,7 @@
 					Save Note
 				</button>
 				<button
-					class="bg-neutral-100 text-neutral-600 rounded-lg py-3 px-4 cursor-pointer"
+					class="bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-lg py-3 px-4 cursor-pointer"
 					@click="cancelChanges(activeNote.slug)"
 				>
 					Cancel
