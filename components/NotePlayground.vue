@@ -73,7 +73,10 @@
 									/>
 								</button>
 							</DeleteNoteModal>
-							<ArchiveNoteModal @archive="activeNote.isArchived ? unarchiveNote() : archiveNote()">
+							<ArchiveNoteModal
+								:is-archived="activeNote.isArchived"
+								@archive="activeNote.isArchived ? unarchiveNote() : archiveNote()"
+							>
 								<button>
 									<CustomIcon
 										name="archive"
