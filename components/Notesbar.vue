@@ -5,7 +5,7 @@
 		usage: "all" | "archive";
 	}>();
 
-	const { notes, selectedTags, filteredNotes } = storeToRefs(useStore());
+	const { notes, selectedTags, filteredNotes, selectedMenu, search } = storeToRefs(useStore());
 	const route = useRoute();
 
 	const activeLink = ref<string>(route.params.slug as string);
@@ -46,7 +46,23 @@
 			/>
 
 			<template v-if="!isDesktop">
-				<h1 v-if="$route.query.tags" class="pb-5 font-bold text-2xl text-neutral-600 dark:text-neutral-300">
+				<div v-if="selectedMenu === 'search'" class="">
+					<h1 class="pb-5 font-bold text-2xl text-neutral-950 dark:text-white">Search</h1>
+					<UInput
+						v-model="search"
+						placeholder="Search by title, content, or tags…"
+						icon="i-lucide-search"
+						size="xl"
+						class="w-full"
+					/>
+					<p v-if="search" class="py-5 font-normal text-sm text-neutral-700 dark:text-neutral-200">
+						{{ `All notes matching "${search}" are displayed below` }}
+					</p>
+				</div>
+				<h1
+					v-else-if="$route.query.tags"
+					class="pb-5 font-bold text-2xl text-neutral-600 dark:text-neutral-300"
+				>
 					{{ usage === "archive" ? "Archived Notes" : "Notes " }} Tagged:
 					<span class="font-bold text-neutral-950 dark:text-white">"{{ selectedTags.join(", ") }}"</span>
 				</h1>

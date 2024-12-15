@@ -63,22 +63,26 @@
 
 					<div class="flex items-center gap-4">
 						<template v-if="!isNewNote">
-							<button @click="deleteNote">
-								<CustomIcon
-									name="delete"
-									width="18"
-									height="18"
-									:stroke="isDark ? '#CACFD8' : '#0E121B'"
-								/>
-							</button>
-							<button @click="activeNote.isArchived ? unarchiveNote() : archiveNote()">
-								<CustomIcon
-									name="archive"
-									width="18"
-									height="18"
-									:stroke="isDark ? '#CACFD8' : '#0E121B'"
-								/>
-							</button>
+							<DeleteNoteModal @delete="deleteNote">
+								<button>
+									<CustomIcon
+										name="delete"
+										width="18"
+										height="18"
+										:stroke="isDark ? '#CACFD8' : '#0E121B'"
+									/>
+								</button>
+							</DeleteNoteModal>
+							<ArchiveNoteModal @archive="activeNote.isArchived ? unarchiveNote() : archiveNote()">
+								<button>
+									<CustomIcon
+										name="archive"
+										width="18"
+										height="18"
+										:stroke="isDark ? '#CACFD8' : '#0E121B'"
+									/>
+								</button>
+							</ArchiveNoteModal>
 						</template>
 						<button
 							variant="ghost"
