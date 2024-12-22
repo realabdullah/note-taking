@@ -6,3 +6,10 @@ export interface NoteObj {
     lastEdited: string | Date;
     isArchived: boolean;
 }
+
+export interface ThemeOption {
+    title: string;
+    desc: string;
+    icon: string;
+    value: string;
+}

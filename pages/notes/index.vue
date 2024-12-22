@@ -3,6 +3,9 @@
 		name: "notes",
 		layout: "dashboard",
 	});
+
+	const { pageHeader } = storeToRefs(useStore());
+	pageHeader.value = "All Notes"
 </script>
 
 <template>

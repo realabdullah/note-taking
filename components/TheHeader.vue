@@ -4,7 +4,7 @@
 	const route = useRoute();
 	const isArchiveRoute = computed(() => ["archive", "archived-note"].includes(route.name as string));
 
-	const { selectedTags, search } = storeToRefs(useStore());
+	const { selectedTags, search, pageHeader } = storeToRefs(useStore());
 </script>
 
 <template>
@@ -24,7 +24,7 @@
 			<span class="font-bold text-neutral-950 dark:text-white">"{{ selectedTags.join(", ") }}"</span>
 		</h1>
 		<h1 v-else class="font-bold text-neutral-950 dark:text-white text-2xl">
-			{{ isArchiveRoute ? "Archived Notes" : "All Notes" }}
+			{{ isArchiveRoute ? "Archived Notes" : pageHeader }}
 		</h1>
 
 		<div class="flex items-center gap-4">
@@ -34,9 +34,9 @@
 				icon="i-lucide-search"
 				class="w-[300px]"
 			/>
-			<button>
+			<NuxtLink to="/settings">
 				<CustomIcon name="settings" width="24" height="24" :fill="isDark ? '#99A0AE' : '#717784'" />
-			</button>
+			</NuxtLink>
 		</div>
 	</div>
 </template>

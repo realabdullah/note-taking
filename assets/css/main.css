@@ -3,6 +3,8 @@
 
 @theme {
 	--font-display: "Source Code Pro", "sans-serif";
+	--font-inter: "Inter", "sans-serif";
+	--font-noto-serif: "Noto Serif", "sans-serif";
 
 	--color-neutral-0: #ffffff;
 	--color-neutral-50: #f5f7fa;

@@ -4,6 +4,7 @@ import { notesData } from "@/assets/constants";
 export const useStore = defineStore("store", () => {
 	const route = useRoute();
 
+	const pageHeader = ref("All Notes");
 	const selectedMenu = ref<string>(`${route.path}`);
 	const activeNote = ref<NoteObj>({
 		slug: "",
@@ -150,6 +151,7 @@ export const useStore = defineStore("store", () => {
 	};
 
 	return {
+		pageHeader,
 		selectedMenu,
 		search,
 		filteredNotes,
