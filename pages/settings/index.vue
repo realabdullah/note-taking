@@ -42,29 +42,29 @@
 					/>
 				</div>
 
-				<template v-if="['ColorTheme', 'FontTheme'].includes(selectedSetting)">
-					<SettingsOptionSelector
-						:model-value="selectedOption[selectedSetting]"
-						:title="options[selectedSetting].title"
-						:description="options[selectedSetting].desc"
-						:options="options[selectedSetting].options"
-						@apply="selectedOption[selectedSetting] = $event"
-					/>
-				</template>
+				<SettingsOptionSelector
+					v-if="['ColorTheme', 'FontTheme'].includes(selectedSetting)"
+					:model-value="selectedOption[selectedSetting]"
+					:title="options[selectedSetting].title"
+					:description="options[selectedSetting].desc"
+					:options="options[selectedSetting].options"
+					@apply="selectedOption[selectedSetting] = $event"
+				/>
+				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" />
 			</div>
 		</div>
 
 		<template v-if="isDesktop">
-			<div class="col-span-9 h-full overflow-x-hidden overflow-y-auto p-8">
-				<template v-if="['ColorTheme', 'FontTheme'].includes(selectedSetting)">
-					<SettingsOptionSelector
-						:model-value="selectedOption[selectedSetting]"
-						:title="options[selectedSetting].title"
-						:description="options[selectedSetting].desc"
-						:options="options[selectedSetting].options"
-						@apply="selectedOption[selectedSetting] = $event"
-					/>
-				</template>
+			<div class="col-span-7 h-full overflow-x-hidden overflow-y-auto p-8">
+				<SettingsOptionSelector
+					v-if="['ColorTheme', 'FontTheme'].includes(selectedSetting)"
+					:model-value="selectedOption[selectedSetting]"
+					:title="options[selectedSetting].title"
+					:description="options[selectedSetting].desc"
+					:options="options[selectedSetting].options"
+					@apply="selectedOption[selectedSetting] = $event"
+				/>
+				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" />
 			</div>
 		</template>
 	</div>

@@ -10,7 +10,6 @@
 		password: "",
 	});
 
-	const schema = authFormSchema;
 	const isDark = useIsDark();
 </script>
 
@@ -22,7 +21,7 @@
 		</div>
 
 		<div class="mt-10">
-			<UForm :state :schema class="space-y-4 w-full">
+			<UForm :state :schema="authFormSchema" class="space-y-4 w-full">
 				<UFormField label="Email Address" :ui="labelUi" name="email" size="xl">
 					<UInput v-model="state.email" :ui="inputOutlineUi" placeholder="email@example.com" size="xl" />
 				</UFormField>

@@ -28,6 +28,21 @@ export const resetPasswordFormSchema = z
 
 export type resetPasswordFormSchemaType = z.output<typeof resetPasswordFormSchema>;
 
+export const changePasswordSchema = z
+	.object({
+		oldPassword: z.string({ required_error: "Old password is required" }),
+		password: z.string({ required_error: "Password is required" }).min(8, "Must be at least 8 characters"),
+		confirmPassword: z.string({
+			required_error: "Confirm password is required",
+		}),
+	})
+	.refine(data => data.password === data.confirmPassword, {
+		message: "Passwords do not match",
+		path: ["confirmPassword"],
+	});
+
+export type changePasswordSchemaType = z.output<typeof changePasswordSchema>;
+
 interface ColorReplaceOptions {
 	fill?: string;
 	stroke?: string;
