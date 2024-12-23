@@ -7,7 +7,7 @@
 	const { activeNote, notes, isNewNote } = storeToRefs(useStore());
 
 	const { isDesktop } = useDeviceType();
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 	const route = useRoute();
 
 	const goBack = () => {

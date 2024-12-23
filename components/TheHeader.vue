@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 
 	const route = useRoute();
 	const isArchiveRoute = computed(() => ["archive", "archived-note"].includes(route.name as string));

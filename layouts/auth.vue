@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 </script>
 
 <template>

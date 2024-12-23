@@ -6,7 +6,7 @@
 		(event: EmitsEvent): void;
 	}>();
 
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 
 	const onAction = (action: "archive" | "delete" | "restore") => {
 		emits(action);

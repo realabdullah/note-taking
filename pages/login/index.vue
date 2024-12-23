@@ -10,7 +10,7 @@
 		password: "",
 	});
 
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 </script>
 
 <template>

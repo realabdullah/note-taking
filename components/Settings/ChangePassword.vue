@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 
 	const fields = ref([
 		{ label: "Old Password", model: "oldPassword", hidden: true },

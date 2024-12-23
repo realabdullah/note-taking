@@ -13,7 +13,7 @@
 	}>();
 
 	const selected = ref(props.modelValue);
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 
 	watch(
 		() => props.modelValue,

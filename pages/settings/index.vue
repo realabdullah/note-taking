@@ -5,12 +5,21 @@
 	pageHeader.value = "Settings";
 
 	const { isDesktop } = useDeviceType();
+	const { isDark, colorMode, setColorMode } = useThemeMode();
 
 	const selectedSetting = ref("ColorTheme");
-	const selectedOption = ref<{ [key: string]: string }>({ ColorTheme: "system", FontTheme: "sans-serif" });
+	const selectedOption = ref<{ [key: string]: string }>({ ColorTheme: colorMode.preference, FontTheme: "sans-serif" });
 	const options: { [key: string]: { title: string; desc: string; options: ThemeOption[] } } = {
 		ColorTheme: { title: "Color Theme", desc: "Choose your color theme:", options: colorTheme },
 		FontTheme: { title: "Font Theme", desc: "Choose your font theme:", options: fontThemes },
+	};
+
+	const applySetting = (val: string) => {
+		if (selectedSetting.value === "ColorTheme") {
+			setColorMode(val as ColorMode);
+		}
+
+		selectedOption.value[selectedSetting.value] = val;
 	};
 </script>
 
@@ -48,7 +57,7 @@
 					:title="options[selectedSetting].title"
 					:description="options[selectedSetting].desc"
 					:options="options[selectedSetting].options"
-					@apply="selectedOption[selectedSetting] = $event"
+					@apply="applySetting"
 				/>
 				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" />
 			</div>
@@ -62,7 +71,7 @@
 					:title="options[selectedSetting].title"
 					:description="options[selectedSetting].desc"
 					:options="options[selectedSetting].options"
-					@apply="selectedOption[selectedSetting] = $event"
+					@apply="applySetting"
 				/>
 				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" />
 			</div>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 	const open = ref(false);
 
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 
 	defineEmits<(event: "delete") => void>();
 </script>

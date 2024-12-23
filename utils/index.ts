@@ -49,7 +49,7 @@ interface ColorReplaceOptions {
 }
 
 export const replaceIconColors = (svg: string, options: ColorReplaceOptions = {}): string => {
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 	const { fill = "#ffffff", stroke = "#ffffff" } = options;
 
 	if (!isDark.value) return svg;

@@ -7,7 +7,7 @@
 		{ title: "Settings", icon: "settings", link: "/settings" },
 	];
 
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 
 	const { selectedMenu } = storeToRefs(useStore());
 	const { onNavigate } = useStore();

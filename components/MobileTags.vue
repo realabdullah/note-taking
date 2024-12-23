@@ -2,7 +2,7 @@
 	const { tags, selectedTags } = storeToRefs(useStore());
 	const { handleTagClick } = useStore();
 
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 </script>
 
 <template>

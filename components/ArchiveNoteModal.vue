@@ -3,7 +3,7 @@
 
 	const open = ref(false);
 
-	const isDark = useIsDark();
+	const { isDark } = useThemeMode();
 
 	defineEmits<(event: "archive") => void>();
 </script>
