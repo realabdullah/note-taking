@@ -15,3 +15,4 @@ export interface ThemeOption {
 }
 
 export type ColorMode = "light" | "dark" | "system";
+export type FontFamily = "sans" | "serif" | "mono";

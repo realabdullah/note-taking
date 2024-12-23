@@ -98,7 +98,7 @@ export const colorTheme = [
 ];
 
 export const fontThemes = [
-	{ title: "Sans-serif", desc: "Clean and modern, easy to read.", icon: "font-sans-serif", value: "sans-serif" },
+	{ title: "Sans-serif", desc: "Clean and modern, easy to read.", icon: "font-sans-serif", value: "sans" },
 	{ title: "Serif", desc: "Classic and elegant for a timeless feel.", icon: "font-serif", value: "serif" },
-	{ title: "Monospace", desc: "Code-like, great for a technical vibe.", icon: "font-monospace", value: "system" },
+	{ title: "Monospace", desc: "Code-like, great for a technical vibe.", icon: "font-monospace", value: "mono" },
 ];

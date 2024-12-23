@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 	import { useDeviceType } from "@/composables/useDeviceType";
-import MobileTags from "~/components/MobileTags.vue";
+	import MobileTags from "~/components/MobileTags.vue";
 
 	const { isDark } = useThemeMode();
 	const { isDesktop } = useDeviceType();
 
 	const { selectedMenu } = storeToRefs(useStore());
+	useFontPreference();
 </script>
 
 <template>

@@ -8,11 +8,12 @@
 	];
 
 	const selectedSetting = defineModel<string>();
+	const { isDesktop } = useDeviceType();
 </script>
 
 <template>
 	<div class="px-1 py-5 pb-20 lg:pb-0">
-		<h2 class="mb-4 text-2xl font-bold text-neutral-950 dark:text-white">Settings</h2>
+		<h2 v-if="!isDesktop" class="mb-4 text-2xl font-bold text-neutral-950 dark:text-white">Settings</h2>
 
 		<div class="space-y-2">
 			<button

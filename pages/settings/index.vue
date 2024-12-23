@@ -5,10 +5,14 @@
 	pageHeader.value = "Settings";
 
 	const { isDesktop } = useDeviceType();
-	const { isDark, colorMode, setColorMode } = useThemeMode();
+	const { colorMode, setColorMode } = useThemeMode();
+	const { fontFamily, setFontFamily } = useFontPreference();
 
 	const selectedSetting = ref("ColorTheme");
-	const selectedOption = ref<{ [key: string]: string }>({ ColorTheme: colorMode.preference, FontTheme: "sans-serif" });
+	const selectedOption = ref<{ [key: string]: string }>({
+		ColorTheme: colorMode.preference,
+		FontTheme: fontFamily.value,
+	});
 	const options: { [key: string]: { title: string; desc: string; options: ThemeOption[] } } = {
 		ColorTheme: { title: "Color Theme", desc: "Choose your color theme:", options: colorTheme },
 		FontTheme: { title: "Font Theme", desc: "Choose your font theme:", options: fontThemes },
@@ -17,6 +21,10 @@
 	const applySetting = (val: string) => {
 		if (selectedSetting.value === "ColorTheme") {
 			setColorMode(val as ColorMode);
+		}
+
+		if (selectedSetting.value === "FontTheme") {
+			setFontFamily(val as FontFamily);
 		}
 
 		selectedOption.value[selectedSetting.value] = val;
