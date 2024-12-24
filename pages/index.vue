@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 	definePageMeta({
-		middleware: [() => navigateTo("/notes")],
+		middleware: ["auth", () => navigateTo("/notes")],
 	});
 </script>
 

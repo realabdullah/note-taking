@@ -16,17 +16,37 @@ export interface ThemeOption {
 
 export type ColorMode = "light" | "dark" | "system";
 export type FontFamily = "sans" | "serif" | "mono";
-export type StorageType = "server" | "indexeddb";
+export type APItype = "server" | "indexeddb";
 
-export type StorageConfig = {
-	type: StorageType;
+export type APIConfig = {
+	type: APItype;
 	serverUrl?: string;
 };
 
-export interface NotesStorage {
+export interface NotesAPI {
+	signUp: (email: string, password: string) => Promise<void>;
+	signIn: (email: string, password: string) => Promise<void>;
+	logout: () => Promise<void>;
 	getAllNotes: () => Promise<NoteObj[]>;
 	getNoteBySlug: (slug: string) => Promise<NoteObj | null>;
 	createNote: (note: NoteObj) => Promise<void>;
 	updateNote: (slug: string, updates: NoteObj) => Promise<void>;
 	deleteNote: (slug: string) => Promise<void>;
+}
+
+export interface SettingsObj {
+	user: string;
+	colorMode: ColorMode;
+	fontFamily: FontFamily;
+}
+
+export interface User {
+	id: string;
+	email: string;
+}
+
+export interface Session {
+	token: string;
+	userId: string;
+	expiry: number;
 }

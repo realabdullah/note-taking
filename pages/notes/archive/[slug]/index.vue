@@ -4,6 +4,7 @@
 	definePageMeta({
 		name: "archived-note",
 		layout: "dashboard",
+		middleware: ["auth"],
 	});
 </script>
 

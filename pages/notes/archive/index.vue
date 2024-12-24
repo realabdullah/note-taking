@@ -2,6 +2,7 @@
 	definePageMeta({
 		name: "archive",
 		layout: "dashboard",
+		middleware: ["auth"],
 	});
 </script>
 

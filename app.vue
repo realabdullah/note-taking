@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-	const { initializeStorage } = useStorage();
+	const { initializeAPI } = useAPI();
 	onMounted(async () => {
-		await initializeStorage({ type: "indexeddb" });
+		await initializeAPI({ type: "indexeddb" });
 	});
 </script>
 

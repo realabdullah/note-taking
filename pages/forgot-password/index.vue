@@ -2,6 +2,7 @@
 	definePageMeta({
 		name: "forgot-password",
 		layout: "auth",
+		middleware: ["guest"],
 	});
 
 	const state = reactive<Partial<forgotPasswordFormSchemaType>>({

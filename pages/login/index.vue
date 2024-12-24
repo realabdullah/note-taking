@@ -2,6 +2,7 @@
 	definePageMeta({
 		name: "login",
 		layout: "auth",
+		middleware: ["guest"],
 	});
 
 	const isPasswordHidden = ref(true);
@@ -11,6 +12,9 @@
 	});
 
 	const { isDark } = useThemeMode();
+
+	const { api } = useAPI();
+	const onSubmit = () => api.value?.signIn(state.email!, state.password!);
 </script>
 
 <template>
@@ -21,7 +25,7 @@
 		</div>
 
 		<div class="mt-10">
-			<UForm :state :schema="authFormSchema" class="space-y-4 w-full">
+			<UForm :state :schema="authFormSchema" class="space-y-4 w-full" @submit.prevent="onSubmit">
 				<UFormField label="Email Address" :ui="labelUi" name="email" size="xl">
 					<UInput v-model="state.email" :ui="inputOutlineUi" placeholder="email@example.com" size="xl" />
 				</UFormField>

@@ -2,6 +2,7 @@
 	definePageMeta({
 		name: "reset-password",
 		layout: "auth",
+		middleware: ["guest"],
 	});
 
 	const isPasswordHidden = ref(true);

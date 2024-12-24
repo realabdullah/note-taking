@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 	ssr: false,
-	modules: ["@nuxt/ui", "@vueuse/nuxt", "@pinia/nuxt"],
+	modules: ["@nuxt/ui", "@vueuse/nuxt", "@pinia/nuxt", "pinia-plugin-persistedstate/nuxt"],
 	css: ["~/assets/css/main.css"],
 	icon: {
 		customCollections: [

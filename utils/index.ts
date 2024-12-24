@@ -74,7 +74,12 @@ export const customiseIcon = (content: string): string => {
 };
 
 export const slugify = (text: string): string => {
-	return text?.toString()?.toLowerCase()?.replace(/\s/g, "-");
+	return text
+		?.toString()
+		?.toLowerCase()
+		?.replace(/[^a-z0-9]/g, "-")
+		?.replace(/\\-+/g, "-")
+		?.replace(/^-|-$/g, "");
 };
 
 export const formatDate = (date: Date | string) => useDateFormat(date, "Do, MMMM YYYY. h:mm A");

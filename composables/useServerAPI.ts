@@ -1,4 +1,4 @@
-export const useServerStorage = (baseUrl: string): NotesStorage => {
+export const useServerAPI = (baseUrl: string): NotesAPI => {
 	const getAllNotes = async (): Promise<NoteObj[]> => fetch(`${baseUrl}/notes`).then(response => response.json());
 
 	const getNoteBySlug = async (id: string): Promise<NoteObj | null> => {

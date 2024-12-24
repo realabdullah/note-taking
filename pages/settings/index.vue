@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-	definePageMeta({ name: "settings", layout: "dashboard" });
+	definePageMeta({ name: "settings", layout: "dashboard", middleware: ["auth"] });
 
 	const { pageHeader } = storeToRefs(useStore());
 	pageHeader.value = "Settings";

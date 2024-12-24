@@ -9,6 +9,7 @@
 
 	const selectedSetting = defineModel<string>();
 	const { isDesktop } = useDeviceType();
+	const { api } = useAPI();
 </script>
 
 <template>
@@ -49,6 +50,7 @@
 
 			<button
 				class="mt-2 flex items-center gap-2 p-2 w-full cursor-pointer hover:bg-neutral-100 hover:dark:bg-neutral-800 hover:rounded-md"
+				@click="api?.logout()"
 			>
 				<CustomIcon name="logout" :stroke="isDark ? '#E0E4EA' : '#0E121B'" />
 				<span class="text-sm font-medium text-neutral-950 dark:text-white whitespace-nowrap">Logout</span>

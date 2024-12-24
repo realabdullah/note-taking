@@ -2,6 +2,7 @@
 	definePageMeta({
 		name: "notes",
 		layout: "dashboard",
+		middleware: ["auth"],
 	});
 
 	const { pageHeader } = storeToRefs(useStore());
