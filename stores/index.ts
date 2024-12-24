@@ -1,7 +1,8 @@
 import type { NoteObj } from "~/types";
-import { notesData } from "@/assets/constants";
 
 export const useStore = defineStore("store", () => {
+	const { storage } = useStorage();
+
 	const route = useRoute();
 
 	const pageHeader = ref("All Notes");
@@ -14,7 +15,7 @@ export const useStore = defineStore("store", () => {
 		lastEdited: new Date(),
 		isArchived: false,
 	});
-	const notes = ref<NoteObj[]>([...notesData]);
+	const notes = ref<NoteObj[]>([]);
 	const tags = computed(() => [...new Set(notes.value.flatMap(note => note.tags))]);
 
 	const selectedTags = computed(() => {
@@ -26,7 +27,11 @@ export const useStore = defineStore("store", () => {
 					.filter(tag => tags.value.some(savedTag => savedTag.toLowerCase() === tag.toLowerCase()))
 			: [];
 	});
-	const isNewNote = computed(() => activeNote.value.slug.includes("new-note-"));
+	const isNewNote = computed(
+		() =>
+			activeNote.value.slug.includes("new-note-") ||
+			!notes.value.find(({ slug }) => slug === activeNote.value.slug)
+	);
 
 	const search = ref<string>("");
 	const isArchiveRoute = computed(() => ["archive", "archived-note"].includes(route.name as string));
@@ -51,24 +56,27 @@ export const useStore = defineStore("store", () => {
 		return isArchiveRoute.value ? result.filter(note => note.isArchived) : result.filter(note => !note.isArchived);
 	});
 
+	const getFreshNotes = async () => {
+		const dbNotes = await storage.value?.getAllNotes();
+		if (dbNotes) notes.value = dbNotes;
+		
+	};
+
 	const updateActiveNote = (note: NoteObj) => {
 		activeNote.value = { ...note };
 	};
 
-	const updateNote = (note: NoteObj) => {
-		notes.value = notes.value.map(({ slug, ...rest }) => {
-			if (slug === note.slug) {
-				return { ...note };
-			}
-			return { slug, ...rest };
-		});
+	const updateNote = async (note: NoteObj) => {
+		await storage.value?.updateNote(note.slug, note);
+		await getFreshNotes();
 	};
 
-	const saveNote = () => {
+	const saveNote = async () => {
 		if (isNewNote.value) {
 			if (!activeNote.value.title.trim()) return;
 			activeNote.value.slug = slugify(activeNote.value.title);
-			notes.value.splice(0, 0, activeNote.value);
+			storage.value?.createNote(activeNote.value);
+			await getFreshNotes();
 			navigateTo({ name: "note", query: route.query, params: { slug: activeNote.value.slug } });
 			return;
 		}
@@ -79,32 +87,34 @@ export const useStore = defineStore("store", () => {
 		}
 
 		activeNote.value.lastEdited = new Date();
-		updateNote(activeNote.value);
+		await storage.value?.updateNote(activeNote.value.slug, activeNote.value);
+		await getFreshNotes();
 	};
 
-	const cancelChanges = () => {
+	const cancelChanges = async () => {
 		const note = notes.value.find(note => note.slug === activeNote.value.slug);
 		if (note) {
 			updateActiveNote(note);
-			updateNote(note);
+			await getFreshNotes();
 		}
 	};
 
-	const archiveNote = () => {
-		const note = notes.value.find(note => note.slug === activeNote.value.slug);
+	const archiveNote = async () => {
+		const note = await storage.value?.getNoteBySlug(activeNote.value.slug);
 		if (note) {
 			note.isArchived = true;
-			updateNote(note);
+			await updateNote(note);
 			updateActiveNote(note);
 			navigateTo({ name: "archived-note", query: route.query, params: { slug: activeNote.value.slug } });
 		}
 	};
 
-	const deleteNote = () => {
+	const deleteNote = async () => {
 		const note = notes.value.find(note => note.slug === activeNote.value.slug);
 		if (note) {
 			const path = useRoute().name === "note" ? "/notes" : "/notes/archive";
-			notes.value = notes.value.filter(note => note.slug !== activeNote.value.slug);
+			await storage.value?.deleteNote(note.slug);
+			await getFreshNotes();
 			activeNote.value = {
 				slug: "",
 				title: "",
@@ -117,11 +127,11 @@ export const useStore = defineStore("store", () => {
 		}
 	};
 
-	const unarchiveNote = () => {
+	const unarchiveNote = async () => {
 		const note = notes.value.find(note => note.slug === activeNote.value.slug);
 		if (note) {
 			note.isArchived = false;
-			updateNote(note);
+			await updateNote(note);
 			updateActiveNote(note);
 			navigateTo({ name: "note", query: route.query, params: { slug: activeNote.value.slug } });
 		}
@@ -160,6 +170,7 @@ export const useStore = defineStore("store", () => {
 		tags,
 		selectedTags,
 		isNewNote,
+		getFreshNotes,
 		saveNote,
 		cancelChanges,
 		archiveNote,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
 
 export const authFormSchema = z.object({
@@ -77,3 +78,59 @@ export const slugify = (text: string): string => {
 };
 
 export const formatDate = (date: Date | string) => useDateFormat(date, "Do, MMMM YYYY. h:mm A");
+
+type SerializableValue = string | number | boolean | null | Date | SerializableObject | SerializableValue[];
+
+interface SerializableObject {
+	[key: string]: SerializableValue;
+}
+
+const isDate = (value: unknown): value is Date => value instanceof Date && !isNaN(value.valueOf());
+
+const isObject = (value: unknown): value is object =>
+	typeof value === "object" && value !== null && !Array.isArray(value);
+
+export const serialize = <T>(obj: T): T => {
+	if (!isObject(obj)) return obj;
+
+	const serialized = {} as T;
+
+	Object.entries(obj as Record<string, unknown>).forEach(([key, value]) => {
+		if (isDate(value)) {
+			(serialized as any)[key] = value.toISOString();
+		} else if (Array.isArray(value)) {
+			(serialized as any)[key] = value.map(item => (isObject(item) ? serialize(item) : item));
+		} else if (isObject(value)) {
+			(serialized as any)[key] = serialize(value);
+		} else {
+			(serialized as any)[key] = value;
+		}
+	});
+
+	return serialized;
+};
+
+export const deserialize = <T>(obj: T): T => {
+	if (!isObject(obj)) return obj;
+
+	const deserialized = {} as T;
+
+	Object.entries(obj as Record<string, unknown>).forEach(([key, value]) => {
+		if (typeof value === "string") {
+			const dateTest = Date.parse(value);
+			if (!isNaN(dateTest) && value.includes("T")) {
+				(deserialized as any)[key] = new Date(value);
+			} else {
+				(deserialized as any)[key] = value;
+			}
+		} else if (Array.isArray(value)) {
+			(deserialized as any)[key] = value.map(item => (isObject(item) ? deserialize(item) : item));
+		} else if (isObject(value)) {
+			(deserialized as any)[key] = deserialize(value);
+		} else {
+			(deserialized as any)[key] = value;
+		}
+	});
+
+	return deserialized;
+};

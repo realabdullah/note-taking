@@ -22,20 +22,24 @@
 		},
 	});
 
-	onMounted(() => {
-		const dNote = notes.value.find(note => note.slug === route.params.slug);
-		if (dNote) activeNote.value = { ...dNote };
-		else {
-			activeNote.value = {
-				slug: route.params.slug as string,
-				title: "",
-				content: "",
-				tags: [],
-				lastEdited: Date.now(),
-				isArchived: false,
-			};
-		}
-	});
+	watch(
+		() => notes.value,
+		() => {
+			const dNote = notes.value.find(note => note.slug === route.params.slug);
+			if (dNote) activeNote.value = { ...dNote };
+			else {
+				activeNote.value = {
+					slug: route.params.slug as string,
+					title: "",
+					content: "",
+					tags: [],
+					lastEdited: Date.now(),
+					isArchived: false,
+				};
+			}
+		},
+		{ once: true }
+	);
 </script>
 
 <template>

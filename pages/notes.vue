@@ -9,6 +9,11 @@
 	const isRouteNote = computed(() => !!route.params?.slug);
 
 	const isArchiveRoute = computed(() => route.name.includes("archive"));
+
+	const { getFreshNotes } = useStore();
+	onMounted(async () => {
+		await getFreshNotes();
+	});
 </script>
 
 <template>
