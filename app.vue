@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 	const { initializeAPI } = useAPI();
 	onMounted(async () => {
-		await initializeAPI({ type: "indexeddb" });
+		await initializeAPI({ type: "appwrite" });
 	});
 </script>
 

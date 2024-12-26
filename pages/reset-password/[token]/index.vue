@@ -74,7 +74,7 @@
 					type="submit"
 					label="Reset Password"
 					size="xl"
-					class="text-white font-semibold text-base cursor-pointer"
+					class="text-white font-semibold text-base"
 					block
 				/>
 			</UForm>

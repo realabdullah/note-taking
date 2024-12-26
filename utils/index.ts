@@ -139,3 +139,51 @@ export const deserialize = <T>(obj: T): T => {
 
 	return deserialized;
 };
+
+/**
+ * Creates a NoteObj from a source object
+ * @param item - Source object with at least an $id field
+ * @returns NoteObj
+ */
+const createNoteObj = <T extends { $id: string }>(item: T): NoteObj => {
+	return {
+		id: item.$id,
+		slug: "slug" in item ? String(item.slug) : "",
+		title: "title" in item ? String(item.title) : "",
+		content: "content" in item ? String(item.content) : "",
+		tags: "tags" in item && Array.isArray(item.tags) ? item.tags : [],
+		lastEdited: "lastEdited" in item ? (item.lastEdited as string) : new Date().toISOString(),
+		isArchived: "isArchived" in item ? Boolean(item.isArchived) : false,
+	};
+};
+
+/**
+ * Maps source data to NoteObj format. Accepts either a single object or an array.
+ * @param data - Source data object or array of objects
+ * @returns Single NoteObj or array of NoteObj depending on input
+ */
+export const mapToNoteObj = <T extends { $id: string }>(data: T | T[]): NoteObj | NoteObj[] => {
+	if (Array.isArray(data)) {
+		return data.map(createNoteObj);
+	}
+	return createNoteObj(data);
+};
+
+/**
+ * Type guard to validate if an object matches NoteObj interface
+ * @param obj - Object to validate
+ * @returns boolean indicating if object is a valid NoteObj
+ */
+export const isNoteObj = (obj: unknown): obj is NoteObj => {
+	const noteSchema = z.object({
+		id: z.string(),
+		slug: z.string(),
+		title: z.string(),
+		content: z.string(),
+		tags: z.array(z.string()),
+		lastEdited: z.union([z.string(), z.date()]),
+		isArchived: z.boolean(),
+	});
+
+	return noteSchema.safeParse(obj).success;
+};

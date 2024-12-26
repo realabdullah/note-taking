@@ -30,7 +30,7 @@
 			<button
 				v-for="(option, index) in options"
 				:key="index"
-				class="border border-neutral-200 dark:border-neutral-700 rounded-xl flex items-center justify-between gap-2 p-4 w-full cursor-pointer"
+				class="border border-neutral-200 dark:border-neutral-700 rounded-xl flex items-center justify-between gap-2 p-4 w-full"
 				:class="{ 'bg-neutral-100 dark:bg-neutral-800': selected === option.value }"
 				@click="selected = option.value"
 			>
@@ -63,7 +63,7 @@
 
 		<UButton
 			label="Apply Changes"
-			class="mt-6 py-3 px-4 flex ml-auto text-white cursor-pointer"
+			class="mt-6 py-3 px-4 flex ml-auto text-white"
 			@click="$emit('apply', selected)"
 		/>
 	</div>

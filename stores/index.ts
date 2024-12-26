@@ -1,23 +1,22 @@
-import type { NoteObj } from "~/types";
-
 export const useStore = defineStore(
 	"store",
 	() => {
 		const { api } = useAPI();
-
 		const route = useRoute();
 
+		const loadstates = reactive({
+			signingUp: false,
+			signingIn: false,
+			loggingOut: false,
+			fetchingNotes: false,
+			fetchingNote: false,
+			creatingNote: false,
+			savingNote: false,
+			deletingNote: false,
+		});
 		const user = ref<User | null>(null);
 		const pageHeader = ref("All Notes");
 		const selectedMenu = ref<string>(`${route.path}`);
-		const activeNote = ref<NoteObj>({
-			slug: "",
-			title: "",
-			content: "",
-			tags: [],
-			lastEdited: new Date(),
-			isArchived: false,
-		});
 		const notes = ref<NoteObj[]>([]);
 		const tags = computed(() => [...new Set(notes.value.flatMap(note => note.tags))]);
 
@@ -30,11 +29,6 @@ export const useStore = defineStore(
 						.filter(tag => tags.value.some(savedTag => savedTag.toLowerCase() === tag.toLowerCase()))
 				: [];
 		});
-		const isNewNote = computed(
-			() =>
-				activeNote.value.slug.includes("new-note-") ||
-				!notes.value.find(({ slug }) => slug === activeNote.value.slug)
-		);
 
 		const search = ref<string>("");
 		const isArchiveRoute = computed(() => ["archive", "archived-note"].includes(route.name as string));
@@ -56,89 +50,37 @@ export const useStore = defineStore(
 				});
 			}
 
-			return isArchiveRoute.value
-				? result.filter(note => note.isArchived)
-				: result.filter(note => !note.isArchived);
+			return result;
 		});
 
-		const getFreshNotes = async () => {
-			const dbNotes = await api.value?.getAllNotes();
+		const getNotes = async () => {
+			const dbNotes = await api.value?.getAllNotes(isArchiveRoute.value);
 			if (dbNotes) notes.value = dbNotes;
 		};
 
-		const updateActiveNote = (note: NoteObj) => {
-			activeNote.value = { ...note };
-		};
-
-		const updateNote = async (note: NoteObj) => {
-			await api.value?.updateNote(note.slug, note);
-			await getFreshNotes();
-		};
-
-		const saveNote = async () => {
-			if (isNewNote.value) {
-				if (!activeNote.value.title.trim()) return;
-				activeNote.value.slug = slugify(activeNote.value.title);
-				api.value?.createNote(activeNote.value);
-				await getFreshNotes();
-				navigateTo({ name: "note", query: route.query, params: { slug: activeNote.value.slug } });
-				return;
-			}
-
-			const note = notes.value.find(note => note.slug === activeNote.value.slug);
-			if (note && JSON.stringify(note) === JSON.stringify(activeNote.value)) {
-				return;
-			}
-
-			activeNote.value.lastEdited = new Date();
-			await api.value?.updateNote(activeNote.value.slug, activeNote.value);
-			await getFreshNotes();
-		};
-
-		const cancelChanges = async () => {
-			const note = notes.value.find(note => note.slug === activeNote.value.slug);
-			if (note) {
-				updateActiveNote(note);
-				await getFreshNotes();
+		const addNewNote = async (note: NoteObj) => {
+			const res = await api.value?.createNote(note);
+			if (res) {
+				notes.value.unshift(note);
+				return navigateTo({ name: "note", query: route.query, params: { id: res.id } });
 			}
 		};
 
-		const archiveNote = async () => {
-			const note = await api.value?.getNoteBySlug(activeNote.value.slug);
-			if (note) {
-				note.isArchived = true;
-				await updateNote(note);
-				updateActiveNote(note);
-				navigateTo({ name: "archived-note", query: route.query, params: { slug: activeNote.value.slug } });
-			}
+		const saveNote = async (note: NoteObj) => {
+			await api.value?.updateNote(note.id, note);
 		};
 
-		const deleteNote = async () => {
-			const note = notes.value.find(note => note.slug === activeNote.value.slug);
-			if (note) {
-				const path = useRoute().name === "note" ? "/notes" : "/notes/archive";
-				await api.value?.deleteNote(note.slug);
-				await getFreshNotes();
-				activeNote.value = {
-					slug: "",
-					title: "",
-					content: "",
-					tags: [],
-					lastEdited: new Date(),
-					isArchived: false,
-				};
-				return navigateTo({ path, query: route.query });
-			}
+		const archiveOrRestoreNote = async (note: NoteObj) => {
+			await saveNote(note);
+			const routeName = note.isArchived ? "archived-note" : "notes";
+			navigateTo({ name: routeName, query: route.query, params: { id: note.id } });
 		};
 
-		const unarchiveNote = async () => {
-			const note = notes.value.find(note => note.slug === activeNote.value.slug);
-			if (note) {
-				note.isArchived = false;
-				await updateNote(note);
-				updateActiveNote(note);
-				navigateTo({ name: "note", query: route.query, params: { slug: activeNote.value.slug } });
-			}
+		const deleteNote = async (id: string) => {
+			const path = useRoute().name === "note" ? "/notes" : "/notes/archive";
+			await api.value?.deleteNote(id);
+			notes.value = notes.value.filter(note => note.id !== id);
+			return navigateTo({ path, query: route.query });
 		};
 
 		const handleTagClick = (tag: string) => {
@@ -165,21 +107,19 @@ export const useStore = defineStore(
 		};
 
 		return {
+			loadstates,
 			user,
 			pageHeader,
 			selectedMenu,
 			search,
 			filteredNotes,
-			activeNote,
 			notes,
 			tags,
 			selectedTags,
-			isNewNote,
-			getFreshNotes,
+			getNotes,
+			addNewNote,
 			saveNote,
-			cancelChanges,
-			archiveNote,
-			unarchiveNote,
+			archiveOrRestoreNote,
 			deleteNote,
 			handleTagClick,
 			onNavigate,

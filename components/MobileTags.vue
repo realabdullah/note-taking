@@ -13,7 +13,7 @@
 
 		<div v-for="tag in tags" :key="tag" class="space-y-1">
 			<button
-				class="border-b border-neutral-200 dark:border-neutral-800 w-full flex items-center gap-2 py-2.5 px-3 pb-4 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
+				class="border-b border-neutral-200 dark:border-neutral-800 w-full flex items-center gap-2 py-2.5 px-3 pb-4 hover:bg-neutral-100 dark:hover:bg-neutral-800"
 				:class="{ 'bg-neutral-100 dark:bg-neutral-800': selectedTags.includes(tag) }"
 				@click="handleTagClick(tag)"
 			>

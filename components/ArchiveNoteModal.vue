@@ -3,13 +3,14 @@
 
 	const open = ref(false);
 
+	const { loadstates } = storeToRefs(useStore());
 	const { isDark } = useThemeMode();
 
 	defineEmits<(event: "archive") => void>();
 </script>
 
 <template>
-	<UModal v-model:open="open">
+	<UModal v-model:open="open" :dismissible="loadstates.savingNote">
 		<slot />
 
 		<template #content>
@@ -44,16 +45,19 @@
 					class="p-5 pb-0 border-t border-neutral-200 dark:border-neutral-600 flex items-center justify-end gap-4"
 				>
 					<button
-						class="py-3 px-4 text-neutral-600 dark:text-neutral-200 font-medium text-sm rounded-lg bg-neutral-100 dark:bg-neutral-500 cursor-pointer"
+						class="py-3 px-4 text-neutral-600 dark:text-neutral-200 font-medium text-sm rounded-lg bg-neutral-100 dark:bg-neutral-500"
+						:disabled="loadstates.savingNote"
 						@click="open = false"
 					>
 						Cancel
 					</button>
 					<button
-						class="py-3 px-4 text-white font-medium text-sm rounded-lg bg-blue-500 cursor-pointer"
+						class="py-3 px-4 text-white font-medium text-sm rounded-lg bg-blue-500"
+						:disabled="loadstates.savingNote"
 						@click="$emit('archive')"
 					>
-						{{ isArchived ? "Restore" : "Archive" }} Note
+						<IsLoading v-if="loadstates.savingNote" :title="isArchived ? 'Restoring...' : 'Archiving...'" />
+						<template v-else>{{ isArchived ? "Restore" : "Archive" }} Note</template>
 					</button>
 				</div>
 			</div>

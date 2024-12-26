@@ -4,10 +4,12 @@
 	const { isDark } = useThemeMode();
 
 	defineEmits<(event: "delete") => void>();
+
+	const { loadstates } = storeToRefs(useStore());
 </script>
 
 <template>
-	<UModal v-model:open="open">
+	<UModal v-model:open="open" :dismissible="loadstates.deletingNote">
 		<slot />
 
 		<template #content>
@@ -33,16 +35,19 @@
 					class="p-5 pb-0 border-t border-neutral-200 dark:border-neutral-600 flex items-center justify-end gap-4"
 				>
 					<button
-						class="py-3 px-4 text-neutral-600 dark:text-neutral-200 font-medium text-sm rounded-lg bg-neutral-100 dark:bg-neutral-500 cursor-pointer"
+						class="py-3 px-4 text-neutral-600 dark:text-neutral-200 font-medium text-sm rounded-lg bg-neutral-100 dark:bg-neutral-500"
+						:disabled="loadstates.deletingNote"
 						@click="open = false"
 					>
 						Cancel
 					</button>
 					<button
-						class="py-3 px-4 text-white font-medium text-sm rounded-lg bg-red-500 cursor-pointer"
+						class="py-3 px-4 text-white font-medium text-sm rounded-lg bg-red-500"
+						:disabled="loadstates.deletingNote"
 						@click="$emit('delete')"
 					>
-						Delete Note
+						<IsLoading v-if="loadstates.deletingNote" title="Deleting.." />
+						<template v-else>Delete Note</template>
 					</button>
 				</div>
 			</div>

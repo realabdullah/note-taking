@@ -20,7 +20,7 @@
 			<button
 				v-for="(setting, index) in settings"
 				:key="index"
-				class="flex items-center justify-between gap-3 p-2 w-full cursor-pointer"
+				class="flex items-center justify-between gap-3 p-2 w-full"
 				:class="{ 'bg-neutral-100 dark:bg-neutral-800 rounded-md': selectedSetting === setting.value }"
 				@click="selectedSetting = setting.value"
 			>
@@ -49,7 +49,7 @@
 			<USeparator color="neutral" :ui="{ border: 'border-neutral-200 dark:border-neutral-800' }" />
 
 			<button
-				class="mt-2 flex items-center gap-2 p-2 w-full cursor-pointer hover:bg-neutral-100 hover:dark:bg-neutral-800 hover:rounded-md"
+				class="mt-2 flex items-center gap-2 p-2 w-full hover:bg-neutral-100 hover:dark:bg-neutral-800 hover:rounded-md"
 				@click="api?.logout()"
 			>
 				<CustomIcon name="logout" :stroke="isDark ? '#E0E4EA' : '#0E121B'" />

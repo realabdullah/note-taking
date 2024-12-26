@@ -67,39 +67,48 @@ export const useDexieDB = (): NotesAPI => {
 		}
 	};
 
-	const getAllNotes = async (): Promise<NoteObj[]> => {
+	const getAllNotes = async (archived = false): Promise<NoteObj[]> => {
 		return db.notes
 			.where("userId")
 			.equals(user.value?.id ?? "")
+			.and(note => note.isArchived === archived)
 			.toArray();
 	};
 
-	const getNoteBySlug = async (slug: string): Promise<NoteObj | null> => {
-		const note = await db.notes.where({ slug, userId: user.value?.id }).first();
-		return note ?? null;
+	const getNoteByID = async (id: string): Promise<NoteObj | null> => {
+		try {
+			const note = await db.notes.where({ id, userId: user.value?.id }).first();
+			return note ?? null;
+		} catch (error) {
+			useToast().add({ title: "Error", description: error as string, color: "error" });
+			return null;
+		}
 	};
 
-	const createNote = async (noteInput: NoteObj): Promise<void> => {
+	const createNote = async (noteInput: NoteObj) => {
 		try {
+			const id = crypto.randomUUID().replaceAll("-", "");
+			noteInput.id = id;
 			await db.notes.add(serialize({ ...noteInput, userId: user.value?.id }));
 			useToast().add({ title: "Success", description: "Note created successfully", color: "success" });
+			return { ...noteInput, id };
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
 		}
 	};
 
-	const updateNote = async (slug: string, updates: NoteObj): Promise<void> => {
+	const updateNote = async (id: string, updates: NoteObj): Promise<void> => {
 		try {
-			await db.notes.update(slug, { ...serialize({ ...updates, userId: user.value?.id }) });
+			await db.notes.update(id, { ...serialize({ ...updates, userId: user.value?.id }) });
 			useToast().add({ title: "Success", description: "Note updated successfully", color: "success" });
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
 		}
 	};
 
-	const deleteNote = async (slug: string): Promise<void> => {
+	const deleteNote = async (id: string): Promise<void> => {
 		try {
-			await db.notes.where({ slug, userId: user.value?.id }).delete();
+			await db.notes.where({ id, userId: user.value?.id }).delete();
 			useToast().add({ title: "Success", description: "Note deleted successfully", color: "success" });
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
@@ -111,7 +120,7 @@ export const useDexieDB = (): NotesAPI => {
 		signIn,
 		logout,
 		getAllNotes,
-		getNoteBySlug,
+		getNoteByID,
 		createNote,
 		updateNote,
 		deleteNote,

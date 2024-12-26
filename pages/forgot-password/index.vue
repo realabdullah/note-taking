@@ -31,7 +31,7 @@
 					type="submit"
 					label="Send reset link"
 					size="xl"
-					class="text-white font-semibold text-base cursor-pointer"
+					class="text-white font-semibold text-base"
 					block
 				/>
 			</UForm>

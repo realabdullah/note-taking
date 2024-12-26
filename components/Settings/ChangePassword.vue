@@ -60,7 +60,7 @@
 
 			<UButton
 				label="Save Password"
-				class="mt-6 py-3 px-4 flex ml-auto text-white cursor-pointer"
+				class="mt-6 py-3 px-4 flex ml-auto text-white"
 				:disabled="Object.values(state).includes('')"
 				@click="$emit('change-password', form)"
 			/>

@@ -1,4 +1,5 @@
 export interface NoteObj {
+	id: string;
 	slug: string;
 	title: string;
 	content: string;
@@ -14,9 +15,10 @@ export interface ThemeOption {
 	value: string;
 }
 
+export type NotePlaygroundActions = "save" | "cancel" | "archive" | "delete" | "unarchive";
 export type ColorMode = "light" | "dark" | "system";
 export type FontFamily = "sans" | "serif" | "mono";
-export type APItype = "server" | "indexeddb";
+export type APItype = "server" | "indexeddb" | "appwrite";
 
 export type APIConfig = {
 	type: APItype;
@@ -27,11 +29,11 @@ export interface NotesAPI {
 	signUp: (email: string, password: string) => Promise<void>;
 	signIn: (email: string, password: string) => Promise<void>;
 	logout: () => Promise<void>;
-	getAllNotes: () => Promise<NoteObj[]>;
-	getNoteBySlug: (slug: string) => Promise<NoteObj | null>;
-	createNote: (note: NoteObj) => Promise<void>;
-	updateNote: (slug: string, updates: NoteObj) => Promise<void>;
-	deleteNote: (slug: string) => Promise<void>;
+	getAllNotes: (archived: boolean) => Promise<NoteObj[]>;
+	getNoteByID: (id: string) => Promise<NoteObj | null>;
+	createNote: (note: NoteObj) => Promise<NoteObj | undefined>;
+	updateNote: (id: string, updates: NoteObj) => Promise<void>;
+	deleteNote: (id: string) => Promise<void>;
 }
 
 export interface SettingsObj {

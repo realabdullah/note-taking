@@ -64,7 +64,7 @@
 					type="submit"
 					label="Sign up"
 					size="xl"
-					class="text-white font-semibold text-base cursor-pointer"
+					class="text-white font-semibold text-base"
 					block
 				/>
 
@@ -74,7 +74,7 @@
 			<p class="text-center mt-6 font-normal text-sm text-neutral-600 dark:text-neutral-300">Or sign up with:</p>
 
 			<UButton
-				class="my-4 border border-neutral-300 dark:border-neutral-600 bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-950 dark:text-white cursor-pointer"
+				class="my-4 border border-neutral-300 dark:border-neutral-600 bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-950 dark:text-white"
 				label="Google"
 				size="xl"
 				block

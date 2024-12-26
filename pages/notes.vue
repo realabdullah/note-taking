@@ -7,13 +7,13 @@
 	const { isDesktop } = useDeviceType();
 
 	const route = useRoute();
-	const isRouteNote = computed(() => !!route.params?.slug);
+	const isRouteNote = computed(() => !!route.params?.id);
 
 	const isArchiveRoute = computed(() => route.name.includes("archive"));
 
-	const { getFreshNotes } = useStore();
+	const { getNotes } = useStore();
 	onMounted(async () => {
-		await getFreshNotes();
+		await getNotes();
 	});
 </script>
 

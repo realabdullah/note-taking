@@ -8,17 +8,13 @@
 	const { notes, selectedTags, filteredNotes, selectedMenu, search } = storeToRefs(useStore());
 	const route = useRoute();
 
-	const activeLink = ref<string>(route.params.slug as string);
-	const onNavigate = (slug: string) => {
-		activeLink.value = slug;
+	const onNavigate = (id: string) => {
 		const routeName = usage === "archive" ? "archived-note" : "note";
-		navigateTo({ name: routeName, query: route.query, params: { slug } });
+		navigateTo({ name: routeName, query: route.query, params: { id } });
 	};
 
 	const createNewNote = () => {
-		const slug = `new-note-${Date.now()}`;
-		activeLink.value = slug;
-		navigateTo({ name: "note", query: route.query, params: { slug } });
+		navigateTo({ name: "new-note" });
 	};
 
 	const { isDesktop } = useDeviceType();
@@ -39,7 +35,7 @@
 				v-if="filteredNotes && filteredNotes.length > 0"
 				:label="isDesktop ? 'Create New Note' : ''"
 				size="xl"
-				class="dark:text-white cursor-pointer max-lg:fixed max-lg:bottom-[89px] max-lg:right-8 max-lg:z-50 max-lg:justify-center max-lg:h-16 max-lg:w-16 max-lg:rounded-[50%]"
+				class="dark:text-white max-lg:fixed max-lg:bottom-[89px] max-lg:right-8 max-lg:z-50 max-lg:justify-center max-lg:h-16 max-lg:w-16 max-lg:rounded-[50%]"
 				icon="i-lucide-plus"
 				:block="isDesktop"
 				@click="createNewNote"
@@ -82,9 +78,9 @@
 		<div v-if="filteredNotes && filteredNotes.length > 0" class="flex flex-col gap-1">
 			<template v-for="(note, index) in filteredNotes" :key="index">
 				<div
-					class="w-full p-2 space-y-3 rounded-[6px] hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
-					:class="[{ 'bg-neutral-100 dark:bg-neutral-800': $route.params.slug === note.slug }]"
-					@click="onNavigate(note.slug)"
+					class="w-full p-2 space-y-3 rounded-[6px] hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+					:class="[{ 'bg-neutral-100 dark:bg-neutral-800': $route.params.id === note.id }]"
+					@click="onNavigate(note.id)"
 				>
 					<h3 class="space-y-3 font-semibold text-base text-neutral-950 dark:text-white">
 						{{ note.title }}
@@ -119,7 +115,7 @@
 						? "No notes have been archived yet. Move notes here for safekeeping, or "
 						: "You don’t have any notes yet. Start a new note to capture your thoughts and ideas."
 				}}
-				<span class="underline cursor-pointer" @click="createNewNote">create a new note.</span>
+				<span class="underline" @click="createNewNote">create a new note.</span>
 			</span>
 		</div>
 	</div>
