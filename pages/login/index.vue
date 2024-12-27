@@ -11,10 +11,11 @@
 		password: "",
 	});
 
+	const { loadstates } = storeToRefs(useStore());
 	const { isDark } = useThemeMode();
 
-	const { api } = useAPI();
-	const onSubmit = () => api.value?.signIn(state.email!, state.password!);
+	const { $api } = useNuxtApp();
+	const onSubmit = () => $api.signIn(state.email!, state.password!);
 </script>
 
 <template>
@@ -71,6 +72,7 @@
 					size="xl"
 					class="text-white font-semibold text-base"
 					block
+					:loading="loadstates.signingIn"
 				/>
 
 				<USeparator color="neutral" :ui="{ border: 'border-neutral-200 dark:border-neutral-800' }" />

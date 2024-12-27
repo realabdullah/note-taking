@@ -34,6 +34,8 @@ export interface NotesAPI {
 	createNote: (note: NoteObj) => Promise<NoteObj | undefined>;
 	updateNote: (id: string, updates: NoteObj) => Promise<void>;
 	deleteNote: (id: string) => Promise<void>;
+	getAccountPrefs: () => Promise<SettingsObj | undefined>;
+	setAccountPrefs: (settings: Record<string, string>) => Promise<SettingsObj | undefined>;
 }
 
 export interface SettingsObj {

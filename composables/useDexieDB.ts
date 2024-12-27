@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 
 export const useDexieDB = (): NotesAPI => {
-	const { user } = storeToRefs(useStore());
+	const { user, userPrefs } = storeToRefs(useStore());
 
 	const generateToken = async (userId: string) => {
 		const existingToken = await db.sessions.where("userId").equals(userId).first();
@@ -115,6 +115,28 @@ export const useDexieDB = (): NotesAPI => {
 		}
 	};
 
+	const getAccountPrefs = async () => {
+		try {
+			const prefs = await db.users.where({ userId: user.value?.id }).first();
+			console.log("ty prefs ", prefs);
+			return prefs as unknown as SettingsObj;
+		} catch (error) {
+			useToast().add({ title: "Error", description: error as string, color: "error" });
+		}
+	};
+
+	const setAccountPrefs = async (settings: Record<string, string>) => {
+		try {
+			// @ts-expect-error well
+			await db.users.update(settings.user, { ...serialize({ ...settings, userId: user.value?.id }) });
+			userPrefs.value = { ...userPrefs.value, ...settings } as SettingsObj;
+			useToast().add({ title: "Success", description: "Note updated successfully", color: "success" });
+			return userPrefs.value;
+		} catch (error) {
+			useToast().add({ title: "Error", description: error as string, color: "error" });
+		}
+	};
+
 	return {
 		signUp,
 		signIn,
@@ -124,5 +146,7 @@ export const useDexieDB = (): NotesAPI => {
 		createNote,
 		updateNote,
 		deleteNote,
+		getAccountPrefs,
+		setAccountPrefs,
 	};
 };

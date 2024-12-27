@@ -4,6 +4,7 @@
 		options: ThemeOption[];
 		title?: string;
 		description?: string;
+		loading?: boolean;
 	}
 
 	const props = defineProps<Props>();
@@ -64,6 +65,7 @@
 		<UButton
 			label="Apply Changes"
 			class="mt-6 py-3 px-4 flex ml-auto text-white"
+			:loading="loading"
 			@click="$emit('apply', selected)"
 		/>
 	</div>

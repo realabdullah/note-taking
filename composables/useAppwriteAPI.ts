@@ -1,5 +1,5 @@
 export const useAppwriteAPI = (): NotesAPI => {
-	const { user, loadstates } = storeToRefs(useStore());
+	const { user, loadstates, userPrefs, fontFamily } = storeToRefs(useStore());
 
 	const signUp = async (email: string, password: string): Promise<void> => {
 		try {
@@ -17,7 +17,10 @@ export const useAppwriteAPI = (): NotesAPI => {
 		try {
 			loadstates.value.signingIn = true;
 			const authUser = await awAccount.createEmailPasswordSession(email, password);
+			if (!authUser) throw new Error("Failed to sign in");
 			user.value = { id: authUser.userId, email: authUser.providerUid };
+			const prefs = await getAccountPrefs();
+			if (prefs) userPrefs.value = { ...userPrefs.value, ...prefs };
 			navigateTo("/");
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
@@ -74,6 +77,7 @@ export const useAppwriteAPI = (): NotesAPI => {
 				{ ...rest, userId: user.value?.id }
 			);
 			if (!result) throw new Error("Failed to create note");
+			useToast().add({ title: "Success", description: "Note created successfully", color: "success" });
 			return mapToNoteObj(result) as NoteObj;
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
@@ -91,6 +95,7 @@ export const useAppwriteAPI = (): NotesAPI => {
 				userId: user.value?.id,
 			});
 			if (!result) throw new Error("Error updating note");
+			useToast().add({ title: "Success", description: "Note saved successfully", color: "success" });
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
 		} finally {
@@ -102,10 +107,58 @@ export const useAppwriteAPI = (): NotesAPI => {
 		try {
 			loadstates.value.deletingNote = true;
 			await awDatabase.deleteDocument(awDBconfig.DATABASE_ID, awDBconfig.COLLECTION_ID, id);
+			useToast().add({ title: "Success", description: "Note deleted successfully", color: "success" });
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
 		} finally {
 			loadstates.value.deletingNote = false;
+		}
+	};
+
+	const getAccountPrefs = async () => {
+		try {
+			loadstates.value.gettingPrefs = true;
+			const prefs = await awAccount.getPrefs();
+			if (!Object.keys(prefs).length) {
+				const { colorMode } = useThemeMode();
+				const payload = {
+					user: user.value?.id as string,
+					colorMode: colorMode.preference as ColorMode,
+					fontFamily: fontFamily.value,
+				};
+				const prefsRes = await setAccountPrefs(payload);
+				return prefsRes;
+			}
+			return prefs as unknown as SettingsObj;
+		} catch (error) {
+			useToast().add({ title: "Error", description: error as string, color: "error" });
+		} finally {
+			loadstates.value.gettingPrefs = false;
+		}
+	};
+
+	const setAccountPrefs = async (settings: Record<string, string>) => {
+		try {
+			loadstates.value.isSettingPrefs = true;
+			const prefs = await awAccount.updatePrefs({ ...userPrefs.value, ...settings });
+			if (!prefs) throw new Error("Failed to update preferences");
+			if (!Object.keys(prefs?.prefs).length) {
+				const { colorMode } = useThemeMode();
+				const payload = {
+					user: user.value?.id as string,
+					colorMode: colorMode.preference as ColorMode,
+					fontFamily: fontFamily.value,
+				};
+				userPrefs.value = { ...prefs?.prefs, ...payload };
+				return { ...prefs?.prefs, ...payload } as unknown as SettingsObj;
+			}
+			useToast().add({ title: "Success", description: "Account preferences updated!", color: "success" });
+			userPrefs.value = { ...prefs.prefs };
+			return prefs.prefs as unknown as SettingsObj;
+		} catch (error) {
+			useToast().add({ title: "Error", description: error as string, color: "error" });
+		} finally {
+			loadstates.value.isSettingPrefs = false;
 		}
 	};
 
@@ -118,5 +171,7 @@ export const useAppwriteAPI = (): NotesAPI => {
 		createNote,
 		updateNote,
 		deleteNote,
+		getAccountPrefs,
+		setAccountPrefs,
 	};
 };

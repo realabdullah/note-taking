@@ -1,9 +1,4 @@
-<script lang="ts" setup>
-	const { initializeAPI } = useAPI();
-	onMounted(async () => {
-		await initializeAPI({ type: "appwrite" });
-	});
-</script>
+<script lang="ts" setup></script>
 
 <template>
 	<div>

@@ -1,20 +1,20 @@
 <script lang="ts" setup>
 	definePageMeta({ name: "settings", layout: "dashboard", middleware: ["auth"] });
 
-	const { pageHeader } = storeToRefs(useStore());
+	const { pageHeader, loadstates, fontFamily, colorTheme } = storeToRefs(useStore());
 	pageHeader.value = "Settings";
 
 	const { isDesktop } = useDeviceType();
-	const { colorMode, setColorMode } = useThemeMode();
-	const { fontFamily, setFontFamily } = useFontPreference();
+	const { setColorMode } = useThemeMode();
+	const { setFontFamily } = useFontPreference();
 
 	const selectedSetting = ref("ColorTheme");
 	const selectedOption = ref<{ [key: string]: string }>({
-		ColorTheme: colorMode.preference,
+		ColorTheme: colorTheme.value,
 		FontTheme: fontFamily.value,
 	});
 	const options: { [key: string]: { title: string; desc: string; options: ThemeOption[] } } = {
-		ColorTheme: { title: "Color Theme", desc: "Choose your color theme:", options: colorTheme },
+		ColorTheme: { title: "Color Theme", desc: "Choose your color theme:", options: colorThemes },
 		FontTheme: { title: "Font Theme", desc: "Choose your font theme:", options: fontThemes },
 	};
 
@@ -65,6 +65,7 @@
 					:title="options[selectedSetting].title"
 					:description="options[selectedSetting].desc"
 					:options="options[selectedSetting].options"
+					:loading="loadstates.isSettingPrefs"
 					@apply="applySetting"
 				/>
 				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" />
@@ -79,6 +80,7 @@
 					:title="options[selectedSetting].title"
 					:description="options[selectedSetting].desc"
 					:options="options[selectedSetting].options"
+					:loading="loadstates.isSettingPrefs"
 					@apply="applySetting"
 				/>
 				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" />

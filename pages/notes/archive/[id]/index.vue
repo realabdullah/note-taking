@@ -19,10 +19,10 @@
 	const note = ref<NoteObj>({ ...originalNote.value });
 
 	const route = useRoute();
-	const { api } = useAPI();
+	const { $api } = useNuxtApp();
 
 	const getNote = async (fatal: boolean) => {
-		const res = await api.value?.getNoteByID(route.params.id as string);
+		const res = await $api.getNoteByID(route.params.id as string);
 		if (isNoteObj(res)) {
 			note.value = { ...res };
 			originalNote.value = { ...res };

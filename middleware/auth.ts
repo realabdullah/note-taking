@@ -2,8 +2,8 @@ export default defineNuxtRouteMiddleware(async () => {
 	const dbSrc = localStorage.getItem("api") as APItype;
 
 	if (dbSrc === "appwrite") {
-		const cookies = localStorage.getItem("cookieFallback");
-		if (!cookies) {
+		const cookies = JSON.parse(localStorage.getItem("cookieFallback") || "[]");
+		if (typeof cookies === "object" && !Object.keys(cookies).length) {
 			useCookie("notes--st").value = "";
 			return navigateTo({ name: "login" });
 		}

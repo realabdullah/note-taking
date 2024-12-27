@@ -13,8 +13,9 @@
 
 	const schema = authFormSchema;
 
-	const { api } = useAPI();
-	const onSubmit = () => api.value?.signUp(state.email!, state.password!);
+	const { loadstates } = storeToRefs(useStore());
+	const { $api } = useNuxtApp();
+	const onSubmit = () => $api.signUp(state.email!, state.password!);
 </script>
 
 <template>
@@ -66,6 +67,7 @@
 					size="xl"
 					class="text-white font-semibold text-base"
 					block
+					:loading="loadstates.signingUp"
 				/>
 
 				<USeparator color="neutral" :ui="{ border: 'border-neutral-200 dark:border-neutral-800' }" />

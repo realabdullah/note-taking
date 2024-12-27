@@ -1,4 +1,4 @@
-export const colorTheme = [
+export const colorThemes = [
 	{ title: "Light Mode", desc: "Pick a clean and classic light theme", icon: "sun", value: "light" },
 	{ title: "Dark Mode", desc: "Select a sleek and modern dark theme", icon: "moon", value: "dark" },
 	{ title: "System", desc: "Adapts to your device’s theme", icon: "system-theme", value: "system" },

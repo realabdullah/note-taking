@@ -1,7 +1,6 @@
 export const useStore = defineStore(
 	"store",
 	() => {
-		const { api } = useAPI();
 		const route = useRoute();
 
 		const loadstates = reactive({
@@ -13,13 +12,17 @@ export const useStore = defineStore(
 			creatingNote: false,
 			savingNote: false,
 			deletingNote: false,
+			isSettingPrefs: false,
+			gettingPrefs: false,
 		});
 		const user = ref<User | null>(null);
+		const userPrefs = ref<SettingsObj | null>(null);
 		const pageHeader = ref("All Notes");
 		const selectedMenu = ref<string>(`${route.path}`);
 		const notes = ref<NoteObj[]>([]);
 		const tags = computed(() => [...new Set(notes.value.flatMap(note => note.tags))]);
-
+		const colorTheme = computed(() => userPrefs.value?.colorMode ?? ("light" as ColorMode));
+		const fontFamily = computed(() => userPrefs.value?.fontFamily ?? "sans");
 		const selectedTags = computed(() => {
 			const tagsQ = useRoute().query.tags as string;
 			return tagsQ
@@ -54,12 +57,12 @@ export const useStore = defineStore(
 		});
 
 		const getNotes = async () => {
-			const dbNotes = await api.value?.getAllNotes(isArchiveRoute.value);
+			const dbNotes = await useNuxtApp().$api.getAllNotes(isArchiveRoute.value);
 			if (dbNotes) notes.value = dbNotes;
 		};
 
 		const addNewNote = async (note: NoteObj) => {
-			const res = await api.value?.createNote(note);
+			const res = await useNuxtApp().$api.createNote(note);
 			if (res) {
 				notes.value.unshift(note);
 				return navigateTo({ name: "note", query: route.query, params: { id: res.id } });
@@ -67,7 +70,7 @@ export const useStore = defineStore(
 		};
 
 		const saveNote = async (note: NoteObj) => {
-			await api.value?.updateNote(note.id, note);
+			await useNuxtApp().$api.updateNote(note.id, note);
 		};
 
 		const archiveOrRestoreNote = async (note: NoteObj) => {
@@ -78,7 +81,7 @@ export const useStore = defineStore(
 
 		const deleteNote = async (id: string) => {
 			const path = useRoute().name === "note" ? "/notes" : "/notes/archive";
-			await api.value?.deleteNote(id);
+			await useNuxtApp().$api.deleteNote(id);
 			notes.value = notes.value.filter(note => note.id !== id);
 			return navigateTo({ path, query: route.query });
 		};
@@ -109,6 +112,9 @@ export const useStore = defineStore(
 		return {
 			loadstates,
 			user,
+			userPrefs,
+			colorTheme,
+			fontFamily,
 			pageHeader,
 			selectedMenu,
 			search,
@@ -125,5 +131,5 @@ export const useStore = defineStore(
 			onNavigate,
 		};
 	},
-	{ persist: { pick: ["user"] } }
+	{ persist: { pick: ["user", "userPrefs"] } }
 );

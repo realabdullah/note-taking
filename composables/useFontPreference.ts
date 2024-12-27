@@ -1,5 +1,6 @@
 export const useFontPreference = () => {
-	const fontFamily = ref<FontFamily>((localStorage.getItem("font-family") as FontFamily) ?? "sans");
+	const { $api } = useNuxtApp();
+	const { fontFamily } = storeToRefs(useStore());
 
 	const fontClasses: Record<FontFamily, string> = {
 		sans: "font-inter",
@@ -7,9 +8,8 @@ export const useFontPreference = () => {
 		mono: "font-source-pro",
 	};
 
-	const setFontFamily = (font: FontFamily) => {
-		fontFamily.value = font;
-		localStorage.setItem("font-family", font);
+	const setFontFamily = async (font: FontFamily) => {
+		await $api.setAccountPrefs({ fontFamily: font });
 		updateDocumentFontClass();
 	};
 
@@ -21,9 +21,13 @@ export const useFontPreference = () => {
 		document.documentElement.classList.add(fontClasses[fontFamily.value]);
 	};
 
-	onMounted(() => {
-		updateDocumentFontClass();
-	});
+	watch(
+		() => fontFamily.value,
+		() => {
+			updateDocumentFontClass()
+		},
+		{ immediate: true }
+	);
 
-	return { fontFamily, setFontFamily };
+	return { setFontFamily };
 };
