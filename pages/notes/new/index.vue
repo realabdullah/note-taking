@@ -7,6 +7,12 @@ import type { NoteObj, NotePlaygroundActions } from '~/types';
 		middleware: ["auth"],
 	});
 
+	useSeoMeta({
+		title: "New Note",
+		description: "Create a new note",
+		keywords: "new note, create note",
+	});
+
 	const note = ref<NoteObj>({
 		id: "",
 		slug: "",

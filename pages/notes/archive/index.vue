@@ -4,6 +4,11 @@
 		layout: "dashboard",
 		middleware: ["auth"],
 	});
+
+	useSeoMeta({
+		title: "Archieved Notes",
+		description: "All archived notes in one place",
+	})
 </script>
 
 <template>

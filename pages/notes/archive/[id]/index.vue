@@ -55,6 +55,12 @@
 			note.value = { ...originalNote.value };
 		}
 	};
+
+	useSeoMeta({
+		title: () => `${note.value?.title ?? ""} -- Archived Note`,
+		description: () => note.value.content || "Note content",
+		keywords: () => note.value.tags.join(", "),
+	});
 </script>
 
 <template>
