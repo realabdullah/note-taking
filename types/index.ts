@@ -36,6 +36,7 @@ export interface NotesAPI {
 	deleteNote: (id: string) => Promise<void>;
 	getAccountPrefs: () => Promise<SettingsObj | undefined>;
 	setAccountPrefs: (settings: Record<string, string>) => Promise<SettingsObj | undefined>;
+	updatePassword: (newPassword: string, oldPassword: string) => Promise<void>;
 }
 
 export interface SettingsObj {

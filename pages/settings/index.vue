@@ -89,7 +89,7 @@
 					:loading="loadstates.isSettingPrefs"
 					@apply="applySetting"
 				/>
-				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" />
+				<SettingsChangePassword v-else-if="selectedSetting === 'ChangePassword'" :loading="loadstates.isUpdatingPassword" />
 			</div>
 		</template>
 	</div>

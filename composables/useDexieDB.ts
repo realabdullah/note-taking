@@ -145,6 +145,20 @@ export const useDexieDB = (): NotesAPI => {
 		}
 	};
 
+	const updatePassword = async (newPassword: string, oldPassword: string) => {
+		try {
+			const dbUser = await db.users.where("id").equals(user.value?.id as string).first();
+			const isValid = await bcrypt.compare(oldPassword, dbUser?.password ?? "");
+			if (!isValid) throw new Error("Invalid old password");
+
+			const hashedPassword = await bcrypt.hash(newPassword, 10);
+			await db.users.update(user.value?.id as string, { password: hashedPassword });
+			useToast().add({ title: "Success", description: "Password updated successfully", color: "success" });
+		} catch (error) {
+			useToast().add({ title: "Error", description: error as string, color: "error" });
+		}
+	};
+
 	return {
 		signUp,
 		signIn,
@@ -156,5 +170,6 @@ export const useDexieDB = (): NotesAPI => {
 		deleteNote,
 		getAccountPrefs,
 		setAccountPrefs,
+		updatePassword,
 	};
 };

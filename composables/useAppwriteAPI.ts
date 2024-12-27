@@ -46,6 +46,7 @@ export const useAppwriteAPI = (): NotesAPI => {
 		const response = await awDatabase.listDocuments(awDBconfig.DATABASE_ID, awDBconfig.COLLECTION_ID, [
 			awQuery.orderDesc("$createdAt"),
 			awQuery.equal("isArchived", archived),
+			awQuery.equal("userId", user.value?.id as string),
 			awQuery.limit(25),
 		]);
 		return mapToNoteObj(response.documents) as NoteObj[];
@@ -54,7 +55,9 @@ export const useAppwriteAPI = (): NotesAPI => {
 	const getNoteByID = async (id: string): Promise<NoteObj | null> => {
 		try {
 			loadstates.value.fetchingNote = true;
-			const note = await awDatabase.getDocument(awDBconfig.DATABASE_ID, awDBconfig.COLLECTION_ID, id);
+			const note = await awDatabase.getDocument(awDBconfig.DATABASE_ID, awDBconfig.COLLECTION_ID, id, [
+				awQuery.equal("userId", user.value?.id as string),
+			]);
 			if (!note) return null;
 			return mapToNoteObj(note) as NoteObj;
 		} catch (error) {
@@ -162,6 +165,19 @@ export const useAppwriteAPI = (): NotesAPI => {
 		}
 	};
 
+	const updatePassword = async (newPassword: string, oldPassword: string) => {
+		try {
+			loadstates.value.isUpdatingPassword = true;
+			const res = await awAccount.updatePassword(newPassword, oldPassword);
+			if (!res) throw new Error("Ann error ocuured while updating password");
+			useToast().add({ title: "Success", description: "Password updated successfully", color: "success" });
+		} catch (error) {
+			useToast().add({ title: "Error", description: error as string, color: "error" });
+		} finally {
+			loadstates.value.isUpdatingPassword = false;
+		}
+	};
+
 	return {
 		signUp,
 		signIn,
@@ -173,5 +189,6 @@ export const useAppwriteAPI = (): NotesAPI => {
 		deleteNote,
 		getAccountPrefs,
 		setAccountPrefs,
+		updatePassword,
 	};
 };

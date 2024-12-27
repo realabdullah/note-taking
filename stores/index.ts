@@ -14,6 +14,7 @@ export const useStore = defineStore(
 			deletingNote: false,
 			isSettingPrefs: false,
 			gettingPrefs: false,
+			isUpdatingPassword: false,
 		});
 		const user = ref<User | null>(null);
 		const userPrefs = ref<SettingsObj | null>(null);
