@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 
 export const useDexieDB = (): NotesAPI => {
-	const { user, userPrefs } = storeToRefs(useStore());
+	const { user, userPrefs, fontFamily, colorTheme } = storeToRefs(useStore());
 
 	const generateToken = async (userId: string) => {
 		const existingToken = await db.sessions.where("userId").equals(userId).first();
@@ -117,8 +117,16 @@ export const useDexieDB = (): NotesAPI => {
 
 	const getAccountPrefs = async () => {
 		try {
-			const prefs = await db.users.where({ userId: user.value?.id }).first();
-			console.log("ty prefs ", prefs);
+			const prefs = await db.settings.where({ user: user.value?.id }).first();
+			if (!prefs) {
+				const newPrefs = { userId: user.value?.id, colorMode: colorTheme.value, fontFamily: fontFamily.value };
+				await db.settings.add({
+					user: user.value?.id,
+					colorMode: colorTheme.value,
+					fontFamily: fontFamily.value,
+				});
+				return newPrefs as unknown as SettingsObj;
+			}
 			return prefs as unknown as SettingsObj;
 		} catch (error) {
 			useToast().add({ title: "Error", description: error as string, color: "error" });
@@ -128,7 +136,7 @@ export const useDexieDB = (): NotesAPI => {
 	const setAccountPrefs = async (settings: Record<string, string>) => {
 		try {
 			// @ts-expect-error well
-			await db.users.update(settings.user, { ...serialize({ ...settings, userId: user.value?.id }) });
+			await db.settings.update(user.value?.id, { ...serialize({ ...settings, user: user.value?.id }) });
 			userPrefs.value = { ...userPrefs.value, ...settings } as SettingsObj;
 			useToast().add({ title: "Success", description: "Note updated successfully", color: "success" });
 			return userPrefs.value;
