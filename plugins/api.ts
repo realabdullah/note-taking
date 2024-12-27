@@ -9,6 +9,8 @@ export default defineNuxtPlugin({
 			type: import.meta.env.VITE_DB_INSTANCE || "indexeddb",
 			serverUrl: import.meta.env.VITE_SERVER_URL,
 		};
+		console.log("API config:", config);
+		console.log("server type => ", import.meta.env.VITE_DB_INSTANCE);
 		let api: NotesAPI;
 		if (config.type === "appwrite") api = useAppwriteAPI();
 		else api = useDexieDB();
