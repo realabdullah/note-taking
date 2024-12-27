@@ -10,13 +10,8 @@ export default defineNuxtPlugin({
 			serverUrl: import.meta.env.VITE_SERVER_URL,
 		};
 		let api: NotesAPI;
-		if (config.type === "appwrite") {
-			api = useAppwriteAPI();
-			localStorage.setItem("api", "appwrite");
-		} else {
-			api = useDexieDB();
-			localStorage.setItem("api", "indexeddb");
-		}
+		if (config.type === "appwrite") api = useAppwriteAPI();
+		else api = useDexieDB();
 
 		const middleware = nuxtApp._route.meta.middleware as string[];
 		if (middleware && middleware.includes("auth")) {
