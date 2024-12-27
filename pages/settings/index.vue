@@ -29,6 +29,12 @@
 
 		selectedOption.value[selectedSetting.value] = val;
 	};
+
+	useSeoMeta({
+		title: "Settings -- Notes",
+		description: "Customize your experience",
+		keywords: "settings, customize, theme, font",
+	});
 </script>
 
 <template>

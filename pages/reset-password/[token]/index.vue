@@ -15,6 +15,12 @@
 	});
 
 	const schema = resetPasswordFormSchema;
+
+	useSeoMeta({
+		title: "Reset Password -- Notes",
+		description: "Reset your password",
+		keywords: "reset password, password",
+	});
 </script>
 
 <template>

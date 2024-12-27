@@ -16,6 +16,12 @@
 	const { loadstates } = storeToRefs(useStore());
 	const { $api } = useNuxtApp();
 	const onSubmit = () => $api.signUp(state.email!, state.password!);
+
+	useSeoMeta({
+		title: "Sign Up -- Notes",
+		description: "Create your account",
+		keywords: "sign up, register, account",
+	});
 </script>
 
 <template>

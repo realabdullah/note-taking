@@ -10,6 +10,12 @@
 	});
 
 	const schema = forgotPasswordFormSchema;
+
+	useSeoMeta({
+		title: "Forgot Password -- Notes",
+		description: "Forgot your password? Enter your email below, and we’ll send you a link to reset it.",
+		keywords: "forgot password, reset password, email",
+	});
 </script>
 
 <template>

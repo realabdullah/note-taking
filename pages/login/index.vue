@@ -16,6 +16,12 @@
 
 	const { $api } = useNuxtApp();
 	const onSubmit = () => $api.signIn(state.email!, state.password!);
+
+	useSeoMeta({
+		title: "Login -- Notes",
+		description: "Log in to your account",
+		keywords: "login, sign in, account",
+	});
 </script>
 
 <template>
