@@ -5,23 +5,41 @@
 		middleware: ["guest"],
 	});
 
+	const { config, loadstates } = storeToRefs(useStore());
+	const { $api } = useNuxtApp();
+
+	const showSecurityQuestions = ref(false);
 	const isPasswordHidden = ref(true);
 	const state = reactive<Partial<authFormSchemaType>>({
 		email: "",
 		password: "",
+		securityQuestions: [],
+		serverType: config.value.type,
 	});
 
 	const schema = authFormSchema;
-
-	const { loadstates } = storeToRefs(useStore());
-	const { $api } = useNuxtApp();
-	const onSubmit = () => $api.signUp(state.email!, state.password!);
 
 	useSeoMeta({
 		title: "Sign Up -- Notes",
 		description: "Create your account",
 		keywords: "sign up, register, account",
 	});
+
+	const proceed = () => {
+		if (config.value.type === "appwrite") {
+			$api.signUp(state.email!, state.password!);
+		} else {
+			if (showSecurityQuestions.value) {
+				$api.signUp(state.email!, state.password!, state.securityQuestions!);
+			} else {
+				showSecurityQuestions.value = true;
+			}
+		}
+	};
+
+	const setSecurityQuestions = (securityQuestions: SecurityQuestion["questions"]) => {
+		state.securityQuestions = [...securityQuestions];
+	};
 </script>
 
 <template>
@@ -34,7 +52,9 @@
 		</div>
 
 		<div class="mt-10">
-			<UForm :state :schema class="space-y-4 w-full" @submit.prevent="onSubmit">
+			<DBSelector />
+
+			<UForm :state :schema class="space-y-4 w-full" @submit.prevent="proceed">
 				<UFormField label="Email Address" :ui="labelUi" name="email" size="xl">
 					<UInput v-model="state.email" :ui="inputOutlineUi" placeholder="email@example.com" size="xl" />
 				</UFormField>
@@ -67,9 +87,14 @@
 					</UInput>
 				</UFormField>
 
+				<SetSecurityQuestions
+					v-if="config.type === 'indexeddb' && showSecurityQuestions"
+					@set-security-questions="setSecurityQuestions"
+				/>
+
 				<UButton
 					type="submit"
-					label="Sign up"
+					:label="config.type === 'indexeddb' && !showSecurityQuestions ? 'Proceed' : 'Sign up'"
 					size="xl"
 					class="text-white font-semibold text-base"
 					block

@@ -1,5 +1,6 @@
 export default defineNuxtRouteMiddleware(async () => {
-	if (config.type === "appwrite") {
+	const { config } = storeToRefs(useStore());
+	if (config.value.type === "appwrite") {
 		const cookies = JSON.parse(localStorage.getItem("cookieFallback") || "[]");
 		if (typeof cookies === "object" && Object.keys(cookies).length) {
 			return navigateTo({ name: "notes" });

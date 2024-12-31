@@ -32,6 +32,8 @@
 		</div>
 
 		<div class="mt-10">
+			<DBSelector />
+
 			<UForm :state :schema="authFormSchema" class="space-y-4 w-full" @submit.prevent="onSubmit">
 				<UFormField label="Email Address" :ui="labelUi" name="email" size="xl">
 					<UInput v-model="state.email" :ui="inputOutlineUi" placeholder="email@example.com" size="xl" />

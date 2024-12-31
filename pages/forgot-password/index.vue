@@ -16,6 +16,10 @@
 		description: "Forgot your password? Enter your email below, and we’ll send you a link to reset it.",
 		keywords: "forgot password, reset password, email",
 	});
+
+	const { loadstates } = storeToRefs(useStore());
+	const { $api } = useNuxtApp();
+	const onSubmit = async () => $api.createPasswordRecovery(state.email!);
 </script>
 
 <template>
@@ -28,9 +32,17 @@
 		</div>
 
 		<div class="mt-10">
-			<UForm :state :schema class="space-y-4 w-full">
+			<DBSelector />
+
+			<UForm :state :schema class="space-y-4 w-full" @submit.prevent="onSubmit">
 				<UFormField label="Email Address" :ui="labelUi" name="email" size="xl">
-					<UInput v-model="state.email" :ui="inputOutlineUi" placeholder="email@example.com" size="xl" />
+					<UInput
+						v-model="state.email"
+						:ui="inputOutlineUi"
+						placeholder="email@example.com"
+						size="xl"
+						:disabled="loadstates.isRecoveringPassword"
+					/>
 				</UFormField>
 
 				<UButton
@@ -39,6 +51,8 @@
 					size="xl"
 					class="text-white font-semibold text-base"
 					block
+					:disabled="loadstates.isRecoveringPassword"
+					:loading="loadstates.isRecoveringPassword"
 				/>
 			</UForm>
 		</div>

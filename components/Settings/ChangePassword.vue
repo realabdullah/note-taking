@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+	interface Props {
+		loading?: boolean;
+	}
+	defineProps<Props>();
+
 	const { isDark } = useThemeMode();
 
 	const fields = ref([
@@ -14,13 +19,16 @@
 	});
 
 	defineEmits<(event: "change-password", value: Record<string, string>) => void>();
+
+	const { $api } = useNuxtApp();
+	const onSubmit = () => $api.updatePassword(state.password!, state.oldPassword!);
 </script>
 
 <template>
 	<div>
 		<h2 class="mb-6 text-base font-semibold text-neutral-950 dark:text-white">Change Password</h2>
 
-		<UForm :state :schema="changePasswordSchema" class="space-y-6 w-full">
+		<UForm :state :schema="changePasswordSchema" class="space-y-6 w-full" @submit.prevent="onSubmit">
 			<UFormField
 				v-for="(field, index) in fields"
 				:key="index"
@@ -34,6 +42,7 @@
 					:ui="inputOutlineUi"
 					:type="field.hidden ? 'password' : 'text'"
 					size="xl"
+					:disabled="loading"
 				>
 					<template #trailing>
 						<UButton
@@ -59,10 +68,11 @@
 			</UFormField>
 
 			<UButton
+				type="submit"
 				label="Save Password"
 				class="mt-6 py-3 px-4 flex ml-auto text-white"
-				:disabled="Object.values(state).includes('')"
-				@click="$emit('change-password', form)"
+				:disabled="Object.values(state).includes('') || loading"
+				:loading="loading"
 			/>
 		</UForm>
 	</div>

@@ -35,7 +35,7 @@
 					fatal: true,
 				});
 			} else {
-				useToast().add({ title: "Error", description: "An error ocurred while saving note.", color: "error" });
+				push.error({ title: "Error", message: "An error ocurred while saving note." });
 			}
 		}
 	};

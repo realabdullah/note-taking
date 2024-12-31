@@ -21,6 +21,12 @@
 		description: "Reset your password",
 		keywords: "reset password, password",
 	});
+
+	const route = useRoute();
+	onMounted(() => console.log("route is => ", route));
+	// const { loadStates } = storeToRefs(useStore());
+	// const { $api } = useNuxtApp();
+	// const onSubmit = async () => $api.resetPassword(state.email!);
 </script>
 
 <template>
