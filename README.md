@@ -1,4 +1,4 @@
-# Notes Taking
+# Notes Taking (In Progress)
 
 A web application for taking and managing notes with support for archiving, tagging, and customizable preferences. Built with Nuxt.js and supports both local IndexedDB storage (powered by Dexie.js) and Appwrite.
 
