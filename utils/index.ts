@@ -204,8 +204,3 @@ export const isNoteObj = (obj: unknown): obj is NoteObj => {
 
 	return noteSchema.safeParse(obj).success;
 };
-
-export const config: APIConfig = {
-	type: import.meta.env.VITE_DB_INSTANCE || "indexeddb",
-	serverUrl: import.meta.env.VITE_SERVER_URL,
-};
