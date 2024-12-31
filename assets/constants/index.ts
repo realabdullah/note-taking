@@ -1,3 +1,8 @@
+export const databaseOptions: Array<{ value: APItype; label: string; desc: string }> = [
+	{ value: "indexeddb", label: "IndexedDB", desc: "Store data locally on this device. Best for personal use on a single device." },
+	{ value: "appwrite", label: "Appwrite", desc: "Cloud storage with Appwrite. Access your notes from any device." },
+];
+
 export const colorThemes = [
 	{ title: "Light Mode", desc: "Pick a clean and classic light theme", icon: "sun", value: "light" },
 	{ title: "Dark Mode", desc: "Select a sleek and modern dark theme", icon: "moon", value: "dark" },

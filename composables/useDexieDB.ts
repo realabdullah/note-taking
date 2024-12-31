@@ -13,7 +13,13 @@ export const useDexieDB = (): NotesAPI => {
 		return { token, expiry };
 	};
 
-	const signUp = async (email: string, password: string) => {
+	const signUp = async (
+		email: string,
+		password: string,
+		securityQuestions?: Array<{ question: string; answer: string }>
+	) => {
+		const notification = push.promise("Signing up...");
+
 		try {
 			const existingUser = await db.users.where("email").equals(email).first();
 			if (existingUser) throw new Error("Email already in use");
@@ -21,6 +27,8 @@ export const useDexieDB = (): NotesAPI => {
 			const userId = crypto.randomUUID();
 			const hashedPassword = await bcrypt.hash(password, 10);
 			await db.users.add({ id: userId, email, password: hashedPassword });
+			if (securityQuestions && securityQuestions.length >= 1)
+				await setupSecurityQuestions(userId, securityQuestions);
 
 			const { token, expiry } = await generateToken(userId);
 			const cookie = useCookie("notes--st", { expires: new Date(expiry) });
@@ -28,12 +36,15 @@ export const useDexieDB = (): NotesAPI => {
 
 			user.value = { id: userId, email };
 			await navigateTo({ name: "notes" });
+			notification.resolve("Signed up successfully");
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
 		}
 	};
 
 	const logout = async () => {
+		const notification = push.promise("Logging out...");
+
 		try {
 			const token = useCookie("notes--st");
 			await db.sessions
@@ -43,12 +54,15 @@ export const useDexieDB = (): NotesAPI => {
 			token.value = "";
 			user.value = null;
 			await navigateTo({ name: "login" });
+			notification.resolve("Logged out successfully");
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
 		}
 	};
 
 	const signIn = async (email: string, password: string) => {
+		const notification = push.promise("Signing in...");
+
 		try {
 			const dbUser = await db.users.where("email").equals(email).first();
 			if (!dbUser) throw new Error("Invalid email or password");
@@ -62,8 +76,9 @@ export const useDexieDB = (): NotesAPI => {
 
 			user.value = { id: dbUser.id, email: dbUser.email };
 			await navigateTo({ name: "notes" });
+			notification.resolve("Signed in successfully");
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
 		}
 	};
 
@@ -80,38 +95,44 @@ export const useDexieDB = (): NotesAPI => {
 			const note = await db.notes.where({ id, userId: user.value?.id }).first();
 			return note ?? null;
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			push.error({ title: "Error", message: error as string });
 			return null;
 		}
 	};
 
 	const createNote = async (noteInput: NoteObj) => {
+		const notification = push.promise("Creating note...");
+
 		try {
 			const id = crypto.randomUUID().replaceAll("-", "");
 			noteInput.id = id;
 			await db.notes.add(serialize({ ...noteInput, userId: user.value?.id }));
-			useToast().add({ title: "Success", description: "Note created successfully", color: "success" });
+			notification.resolve("Note created successfully");
 			return { ...noteInput, id };
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
 		}
 	};
 
 	const updateNote = async (id: string, updates: NoteObj): Promise<void> => {
+		const notification = push.promise("Updating note...");
+
 		try {
 			await db.notes.update(id, { ...serialize({ ...updates, userId: user.value?.id }) });
-			useToast().add({ title: "Success", description: "Note updated successfully", color: "success" });
+			notification.resolve("Note updated successfully");
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
 		}
 	};
 
 	const deleteNote = async (id: string): Promise<void> => {
+		const notification = push.promise("Deleting note...");
+
 		try {
 			await db.notes.where({ id, userId: user.value?.id }).delete();
-			useToast().add({ title: "Success", description: "Note deleted successfully", color: "success" });
+			notification.resolve("Note deleted successfully");
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
 		}
 	};
 
@@ -129,33 +150,111 @@ export const useDexieDB = (): NotesAPI => {
 			}
 			return prefs as unknown as SettingsObj;
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			push.error({ title: "Error", message: error as string });
 		}
 	};
 
 	const setAccountPrefs = async (settings: Record<string, string>) => {
+		const notification = push.promise("Updating account preferences...");
+
 		try {
 			// @ts-expect-error well
 			await db.settings.update(user.value?.id, { ...serialize({ ...settings, user: user.value?.id }) });
 			userPrefs.value = { ...userPrefs.value, ...settings } as SettingsObj;
-			useToast().add({ title: "Success", description: "Note updated successfully", color: "success" });
+			notification.resolve("Account preferences updated successfully");
 			return userPrefs.value;
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
 		}
 	};
 
 	const updatePassword = async (newPassword: string, oldPassword: string) => {
+		const notification = push.promise("Updating password...");
+
 		try {
-			const dbUser = await db.users.where("id").equals(user.value?.id as string).first();
+			const dbUser = await db.users
+				.where("id")
+				.equals(user.value?.id as string)
+				.first();
 			const isValid = await bcrypt.compare(oldPassword, dbUser?.password ?? "");
 			if (!isValid) throw new Error("Invalid old password");
 
 			const hashedPassword = await bcrypt.hash(newPassword, 10);
 			await db.users.update(user.value?.id as string, { password: hashedPassword });
-			useToast().add({ title: "Success", description: "Password updated successfully", color: "success" });
+			notification.resolve("Password updated successfully");
 		} catch (error) {
-			useToast().add({ title: "Error", description: error as string, color: "error" });
+			notification.reject({ title: "Error", message: error as string });
+		}
+	};
+
+	const setupSecurityQuestions = async (userId: string, questions: SecurityQuestion["questions"]): Promise<void> => {
+		try {
+			await db.table("securityQuestions").put({
+				userId,
+				questions: questions.map(q => ({
+					question: q.question,
+					answer: q.answer.toLowerCase().trim(),
+				})),
+			});
+		} catch (error) {
+			throw Error(error as string);
+		}
+	};
+
+	const getSecurityQuestions = async (email: string) => {
+		try {
+			const user = await db.users.where("email").equals(email).first();
+			if (!user) throw new Error("User not found");
+
+			const securityQuestions = (await db
+				.table("securityQuestions")
+				.where("userId")
+				.equals(user.id)
+				.first()) as SecurityQuestion;
+			if (!securityQuestions) throw new Error("No security questions found");
+
+			return securityQuestions.questions.map(q => q.question);
+		} catch (error) {
+			push.error({ title: "Error", message: error as string });
+		}
+	};
+
+	const verifySecurityAnswers = async (email: string, answers: string[]) => {
+		try {
+			const user = await db.users.where("email").equals(email).first();
+			if (!user) throw new Error("User not found");
+
+			const securityQuestions = (await db
+				.table("securityQuestions")
+				.where("userId")
+				.equals(user.id)
+				.first()) as SecurityQuestion;
+			if (!securityQuestions) throw new Error("No security questions found");
+
+			return answers.every(
+				(answer, index) => securityQuestions.questions[index].answer === answer.toLowerCase().trim()
+			);
+		} catch (error) {
+			push.error({ title: "Error", message: error as string });
+		}
+	};
+
+	const resetPassword = async (email: string, newPassword: string, answers: string[]): Promise<void> => {
+		try {
+			await db.transaction("rw", [db.users, db.sessions, db.table("securityQuestions")], async () => {
+				const areAnswersCorrect = await verifySecurityAnswers(email, answers);
+				if (!areAnswersCorrect) throw new Error("Incorrect security answers");
+
+				const user = await db.users.where("email").equals(email).first();
+				if (!user) throw new Error("User not found");
+
+				const hashedPassword = await bcrypt.hash(newPassword, 10);
+				await db.users.where("id").equals(user.id).modify({ password: hashedPassword });
+
+				await db.sessions.where("userId").equals(user.id).delete();
+			});
+		} catch (error) {
+			push.error({ title: "Error", message: error as string });
 		}
 	};
 

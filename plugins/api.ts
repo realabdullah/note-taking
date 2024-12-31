@@ -4,9 +4,9 @@ import { useStore } from "@/stores";
 export default defineNuxtPlugin({
 	name: "api-plugin",
 	async setup(nuxtApp: any) {
-		const { userPrefs } = storeToRefs(useStore());
+		const { userPrefs, config } = storeToRefs(useStore());
 		let api: NotesAPI;
-		if (config.type === "appwrite") api = useAppwriteAPI();
+		if (config.value.type === "appwrite") api = useAppwriteAPI();
 		else api = useDexieDB();
 
 		const middleware = nuxtApp._route.meta.middleware as string[];

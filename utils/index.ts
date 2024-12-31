@@ -1,10 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from "zod";
 
-export const authFormSchema = z.object({
-	email: z.string({ required_error: "Email address is required" }).email({ message: "Invalid email address" }),
-	password: z.string({ required_error: "Password is required" }).min(8, "Must be at least 8 characters"),
+const securityQuestionSchema = z.object({
+	question: z.string({ required_error: "Question is required" }),
+	answer: z.string({ required_error: "Answer is required" }),
 });
+
+export const authFormSchema = z
+	.object({
+		email: z.string({ required_error: "Email address is required" }).email({ message: "Invalid email address" }),
+		password: z.string({ required_error: "Password is required" }).min(8, "Must be at least 8 characters"),
+		securityQuestions: z.array(securityQuestionSchema),
+		serverType: z.enum(["server", "indexeddb", "appwrite"]),
+	})
+	.superRefine((data, ctx) => {
+		if (data.serverType === "indexeddb" && (!data.securityQuestions || data.securityQuestions.length < 1)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "At least one security question is required",
+				path: ["securityQuestions"],
+			});
+		}
+	});
 
 export type authFormSchemaType = z.output<typeof authFormSchema>;
 
@@ -186,9 +203,4 @@ export const isNoteObj = (obj: unknown): obj is NoteObj => {
 	});
 
 	return noteSchema.safeParse(obj).success;
-};
-
-export const config: APIConfig = {
-	type: import.meta.env.VITE_DB_INSTANCE || "indexeddb",
-	serverUrl: import.meta.env.VITE_SERVER_URL,
 };

@@ -26,7 +26,14 @@ export type APIConfig = {
 };
 
 export interface NotesAPI {
-	signUp: (email: string, password: string) => Promise<void>;
+	signUp: (
+		email: string,
+		password: string,
+		securityQuestions?: Array<{
+			question: string;
+			answer: string;
+		}>
+	) => Promise<void>;
 	signIn: (email: string, password: string) => Promise<void>;
 	logout: () => Promise<void>;
 	getAllNotes: (archived: boolean) => Promise<NoteObj[]>;
@@ -37,6 +44,8 @@ export interface NotesAPI {
 	getAccountPrefs: () => Promise<SettingsObj | undefined>;
 	setAccountPrefs: (settings: Record<string, string>) => Promise<SettingsObj | undefined>;
 	updatePassword: (newPassword: string, oldPassword: string) => Promise<void>;
+	createPasswordRecovery: (email: string) => Promise<void>;
+	resetPassword: (userId: string, password: string, token: string) => Promise<void>;
 }
 
 export interface SettingsObj {
@@ -55,3 +64,11 @@ export interface Session {
 	userId: string;
 	expiry: number;
 }
+
+export type SecurityQuestion = {
+	userId: string;
+	questions: {
+		question: string;
+		answer: string;
+	}[];
+};

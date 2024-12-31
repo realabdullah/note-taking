@@ -1,8 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 	ssr: false,
-	modules: ["@nuxt/ui", "@vueuse/nuxt", "@pinia/nuxt", "pinia-plugin-persistedstate/nuxt"],
-	css: ["~/assets/css/main.css"],
+	modules: ["@nuxt/ui", "@vueuse/nuxt", "@pinia/nuxt", "pinia-plugin-persistedstate/nuxt", "notivue/nuxt"],
+	css: ["~/assets/css/main.css", "notivue/notification.css", "notivue/animations.css"],
 	icon: {
 		customCollections: [
 			{

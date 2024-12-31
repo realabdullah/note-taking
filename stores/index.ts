@@ -3,6 +3,11 @@ export const useStore = defineStore(
 	() => {
 		const route = useRoute();
 
+		const config = ref<APIConfig>({
+			type: (localStorage.getItem("notes-api") || "indexeddb") as APItype,
+			serverUrl: import.meta.env.VITE_SERVER_URL,
+		});
+
 		const loadstates = reactive({
 			signingUp: false,
 			signingIn: false,
@@ -15,6 +20,7 @@ export const useStore = defineStore(
 			isSettingPrefs: false,
 			gettingPrefs: false,
 			isUpdatingPassword: false,
+			isRecoveringPassword: false,
 		});
 		const user = ref<User | null>(null);
 		const userPrefs = ref<SettingsObj | null>(null);
@@ -111,6 +117,7 @@ export const useStore = defineStore(
 		};
 
 		return {
+			config,
 			loadstates,
 			user,
 			userPrefs,
@@ -132,5 +139,5 @@ export const useStore = defineStore(
 			onNavigate,
 		};
 	},
-	{ persist: { pick: ["user", "userPrefs"] } }
+	{ persist: { pick: ["user", "userPrefs", "config"] } }
 );
