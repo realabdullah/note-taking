@@ -12,9 +12,14 @@ export const authFormSchema = z
 		password: z.string({ required_error: "Password is required" }).min(8, "Must be at least 8 characters"),
 		securityQuestions: z.array(securityQuestionSchema),
 		serverType: z.enum(["server", "indexeddb", "appwrite"]),
+		showSecurityQuestions: z.boolean(),
 	})
 	.superRefine((data, ctx) => {
-		if (data.serverType === "indexeddb" && (!data.securityQuestions || data.securityQuestions.length < 1)) {
+		if (
+			data.serverType === "indexeddb" &&
+			data.showSecurityQuestions &&
+			(!data.securityQuestions || data.securityQuestions.length < 1)
+		) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
 				message: "At least one security question is required",
@@ -24,6 +29,13 @@ export const authFormSchema = z
 	});
 
 export type authFormSchemaType = z.output<typeof authFormSchema>;
+
+export const authLoginFormSchema = z.object({
+	email: z.string({ required_error: "Email address is required" }).email({ message: "Invalid email address" }),
+	password: z.string({ required_error: "Password is required" }),
+});
+
+export type authLoginFormSchemaType = z.output<typeof authLoginFormSchema>;
 
 export const forgotPasswordFormSchema = z.object({
 	email: z.string({ message: "Email address is required" }).email({ message: "Invalid email address" }),
@@ -37,7 +49,6 @@ export const resetPasswordFormSchema = z
 		confirmPassword: z.string({
 			required_error: "Confirm password is required",
 		}),
-		token: z.string(),
 	})
 	.refine(data => data.password === data.confirmPassword, {
 		message: "Passwords do not match",

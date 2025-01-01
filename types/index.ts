@@ -44,8 +44,12 @@ export interface NotesAPI {
 	getAccountPrefs: () => Promise<SettingsObj | undefined>;
 	setAccountPrefs: (settings: Record<string, string>) => Promise<SettingsObj | undefined>;
 	updatePassword: (newPassword: string, oldPassword: string) => Promise<void>;
-	createPasswordRecovery: (email: string) => Promise<void>;
-	resetPassword: (userId: string, password: string, token: string) => Promise<void>;
+	createPasswordRecovery?: (email: string) => Promise<void>;
+	resetPassword:
+		| ((userId: string, password: string, token: string) => Promise<void>)
+		| ((password: string) => Promise<void>);
+	getSecurityQuestions?: (email: string) => Promise<string[] | undefined>;
+	verifySecurityAnswers?: (email: string, answers: string[]) => Promise<void>;
 }
 
 export interface SettingsObj {

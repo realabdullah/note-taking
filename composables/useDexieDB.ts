@@ -27,8 +27,10 @@ export const useDexieDB = (): NotesAPI => {
 			const userId = crypto.randomUUID();
 			const hashedPassword = await bcrypt.hash(password, 10);
 			await db.users.add({ id: userId, email, password: hashedPassword });
-			if (securityQuestions && securityQuestions.length >= 1)
+
+			if (securityQuestions && securityQuestions.length >= 1) {
 				await setupSecurityQuestions(userId, securityQuestions);
+			}
 
 			const { token, expiry } = await generateToken(userId);
 			const cookie = useCookie("notes--st", { expires: new Date(expiry) });
@@ -189,13 +191,14 @@ export const useDexieDB = (): NotesAPI => {
 
 	const setupSecurityQuestions = async (userId: string, questions: SecurityQuestion["questions"]): Promise<void> => {
 		try {
-			await db.table("securityQuestions").put({
+			const payload = {
 				userId,
 				questions: questions.map(q => ({
 					question: q.question,
-					answer: q.answer.toLowerCase().trim(),
+					answer: bcrypt.hashSync(q.answer.toLowerCase().trim(), 10),
 				})),
-			});
+			};
+			await db.table("securityQuestions").put(serialize(payload));
 		} catch (error) {
 			throw Error(error as string);
 		}
@@ -231,28 +234,50 @@ export const useDexieDB = (): NotesAPI => {
 				.first()) as SecurityQuestion;
 			if (!securityQuestions) throw new Error("No security questions found");
 
-			return answers.every(
-				(answer, index) => securityQuestions.questions[index].answer === answer.toLowerCase().trim()
-			);
+			const isVerified = answers.every((answer, index) => {
+				return bcrypt.compareSync(answer.toLowerCase().trim(), securityQuestions.questions[index].answer);
+			});
+
+			if (!isVerified) throw new Error("Incorrect security answers");
+
+			const encodedPayload = btoa(JSON.stringify(answers));
+			await navigateTo({ name: "reset-password", query: { email, token: encodedPayload } });
 		} catch (error) {
 			push.error({ title: "Error", message: error as string });
 		}
 	};
 
-	const resetPassword = async (email: string, newPassword: string, answers: string[]): Promise<void> => {
+	const resetPassword = async (password: string): Promise<void> => {
 		try {
-			await db.transaction("rw", [db.users, db.sessions, db.table("securityQuestions")], async () => {
-				const areAnswersCorrect = await verifySecurityAnswers(email, answers);
-				if (!areAnswersCorrect) throw new Error("Incorrect security answers");
+			const email = useRoute().query?.email as string;
+			const token = useRoute().query?.token as string;
 
-				const user = await db.users.where("email").equals(email).first();
-				if (!user) throw new Error("User not found");
+			if (!email || !token) throw new Error("Missing email or token");
 
-				const hashedPassword = await bcrypt.hash(newPassword, 10);
-				await db.users.where("id").equals(user.id).modify({ password: hashedPassword });
+			const user = await db.users.where("email").equals(email).first();
+			if (!user) throw new Error("User not found");
 
+			const securityQuestions = (await db
+				.table("securityQuestions")
+				.where("userId")
+				.equals(user.id)
+				.first()) as SecurityQuestion;
+			if (!securityQuestions) throw new Error("No security questions found");
+
+			const answers = JSON.parse(atob(useRoute().query?.token as string)) as string[];
+			const isVerified = answers.every((answer, index) =>
+				bcrypt.compareSync(answer.toLowerCase().trim(), securityQuestions.questions[index].answer)
+			);
+
+			if (!isVerified) throw new Error("Invalid token");
+
+			const hashedPassword = await bcrypt.hash(password, 10);
+			await db.transaction("rw", [db.users, db.sessions], async () => {
+				await db.users.update(user.id, { password: hashedPassword });
 				await db.sessions.where("userId").equals(user.id).delete();
 			});
+			push.success({ title: "Success", message: "Password reset successfully" });
+			await navigateTo({ name: "login" });
 		} catch (error) {
 			push.error({ title: "Error", message: error as string });
 		}
@@ -270,5 +295,8 @@ export const useDexieDB = (): NotesAPI => {
 		getAccountPrefs,
 		setAccountPrefs,
 		updatePassword,
+		getSecurityQuestions,
+		verifySecurityAnswers,
+		resetPassword,
 	};
 };

@@ -11,7 +11,6 @@
 	const state = reactive<Partial<resetPasswordFormSchemaType>>({
 		password: "",
 		confirmPassword: "",
-		token: "",
 	});
 
 	const schema = resetPasswordFormSchema;
@@ -22,30 +21,29 @@
 		keywords: "reset password, password",
 	});
 
-	const route = useRoute();
-	onMounted(() => console.log("route is => ", route));
-	// const { loadStates } = storeToRefs(useStore());
-	// const { $api } = useNuxtApp();
-	// const onSubmit = async () => $api.resetPassword(state.email!);
+	const { loadstates } = storeToRefs(useStore());
+	const { $api } = useNuxtApp();
+	const onSubmit = async () => $api.resetPassword(state.password!);
 </script>
 
 <template>
 	<div>
 		<div class="text-center">
-			<h2 class="font-bold text-2xl text-neutral-950 dark:text-white">Forgotten your password?</h2>
+			<h2 class="font-bold text-2xl text-neutral-950 dark:text-white">Reset Your Password</h2>
 			<p class="font-normal text-sm text-neutral-600 dark:text-neutral-300">
-				Enter your email below, and we’ll send you a link to reset it.
+				Enter your new password below to reset it.
 			</p>
 		</div>
 
 		<div class="mt-10">
-			<UForm :state :schema class="space-y-4 w-full">
+			<UForm :state :schema class="space-y-4 w-full" @submit.prevent="onSubmit">
 				<UFormField label="New Password" :ui="labelUi" name="password" size="xl">
 					<UInput
 						v-model="state.password"
 						:ui="inputOutlineUi"
 						:type="isPasswordHidden ? 'password' : 'text'"
 						size="xl"
+						:disabled="loadstates.isRecoveringPassword"
 					>
 						<template #trailing>
 							<UButton
@@ -67,6 +65,7 @@
 						:ui="inputOutlineUi"
 						:type="isConfirmPasswordHidden ? 'password' : 'text'"
 						size="xl"
+						:disabled="loadstates.isRecoveringPassword"
 					>
 						<template #trailing>
 							<UButton
@@ -88,6 +87,8 @@
 					size="xl"
 					class="text-white font-semibold text-base"
 					block
+					:loading="loadstates.isRecoveringPassword"
+					:disabled="loadstates.isRecoveringPassword"
 				/>
 			</UForm>
 		</div>

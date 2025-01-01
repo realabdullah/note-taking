@@ -40,8 +40,8 @@
 			</template>
 		</div>
 
-		<div class="mt-1 mb-4 flex items-center gap-1">
-			<Info class="h-3 w-3" />
+		<div class="mt-1 mb-4 flex items-start gap-1">
+			<Info class="mt-[2px] h-3 w-3" />
 			<p class="text-xs text-neutral-600 dark:text-neutral-300">
 				{{ selectedDatabaseDescription }}
 			</p>

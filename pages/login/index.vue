@@ -6,7 +6,7 @@
 	});
 
 	const isPasswordHidden = ref(true);
-	const state = reactive<Partial<authFormSchemaType>>({
+	const state = reactive<Partial<authLoginFormSchemaType>>({
 		email: "",
 		password: "",
 	});
@@ -34,7 +34,7 @@
 		<div class="mt-10">
 			<DBSelector />
 
-			<UForm :state :schema="authFormSchema" class="space-y-4 w-full" @submit.prevent="onSubmit">
+			<UForm :state :schema="authLoginFormSchema" class="space-y-4 w-full" @submit.prevent="onSubmit">
 				<UFormField label="Email Address" :ui="labelUi" name="email" size="xl">
 					<UInput v-model="state.email" :ui="inputOutlineUi" placeholder="email@example.com" size="xl" />
 				</UFormField>

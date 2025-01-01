@@ -8,13 +8,13 @@
 	const { config, loadstates } = storeToRefs(useStore());
 	const { $api } = useNuxtApp();
 
-	const showSecurityQuestions = ref(false);
 	const isPasswordHidden = ref(true);
 	const state = reactive<Partial<authFormSchemaType>>({
 		email: "",
 		password: "",
 		securityQuestions: [],
 		serverType: config.value.type,
+		showSecurityQuestions: false,
 	});
 
 	const schema = authFormSchema;
@@ -29,16 +29,13 @@
 		if (config.value.type === "appwrite") {
 			$api.signUp(state.email!, state.password!);
 		} else {
-			if (showSecurityQuestions.value) {
+			if (state.showSecurityQuestions) {
 				$api.signUp(state.email!, state.password!, state.securityQuestions!);
 			} else {
-				showSecurityQuestions.value = true;
+				state.securityQuestions = [{ question: "", answer: "" }];
+				state.showSecurityQuestions = true;
 			}
 		}
-	};
-
-	const setSecurityQuestions = (securityQuestions: SecurityQuestion["questions"]) => {
-		state.securityQuestions = [...securityQuestions];
 	};
 </script>
 
@@ -88,13 +85,13 @@
 				</UFormField>
 
 				<SetSecurityQuestions
-					v-if="config.type === 'indexeddb' && showSecurityQuestions"
-					@set-security-questions="setSecurityQuestions"
+					v-if="config.type === 'indexeddb' && state.showSecurityQuestions && state.securityQuestions?.length"
+					v-model="state.securityQuestions"
 				/>
 
 				<UButton
 					type="submit"
-					:label="config.type === 'indexeddb' && !showSecurityQuestions ? 'Proceed' : 'Sign up'"
+					:label="config.type === 'indexeddb' && !state.showSecurityQuestions ? 'Proceed' : 'Sign up'"
 					size="xl"
 					class="text-white font-semibold text-base"
 					block
