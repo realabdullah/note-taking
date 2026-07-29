@@ -1,24 +1,11 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
-import tseslint from "typescript-eslint";
-import pluginVue from "eslint-plugin-vue";
-import eslintConfigPrettier from "eslint-config-prettier";
+import withNuxt from "./.nuxt/eslint.config.mjs";
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
-	{ files: ["**/*.{js,mjs,cjs,ts,vue}"] },
-	{ languageOptions: { globals: globals.browser } },
-	pluginJs.configs.recommended,
-	...tseslint.configs.recommended,
-	...pluginVue.configs["flat/essential"],
-	{
-		files: ["**/*.vue"],
-		languageOptions: { parserOptions: { parser: tseslint.parser } },
+export default withNuxt({
+	ignores: [".nuxt/**", ".output/**", "coverage/**", "playwright-report/**", "test-results/**"],
+	rules: {
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+		"vue/html-self-closing": "off",
+		"vue/multi-word-component-names": "off",
 	},
-	{
-		rules: {
-			"vue/multi-word-component-names": "off",
-		},
-	},
-	eslintConfigPrettier,
-];
+});

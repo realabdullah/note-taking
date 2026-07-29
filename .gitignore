@@ -22,3 +22,12 @@ logs
 .env
 .env.*
 !.env.example
+
+# Test artifacts
+coverage
+playwright-report
+test-results
+.vercel
+
+# Local database tooling
+drizzle/meta/_journal.json.bak
