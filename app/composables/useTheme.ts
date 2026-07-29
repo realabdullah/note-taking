@@ -19,8 +19,27 @@ export const useTheme = () => {
   }
 
   const setTheme = (next: ThemePreference) => {
-    preference.value = next
-    applyTheme()
+    if (preference.value === next) return
+
+    const update = () => {
+      preference.value = next
+      applyTheme()
+    }
+
+    if (!import.meta.client || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      update()
+      return
+    }
+
+    const documentWithTransitions = document as Document & {
+      startViewTransition?: (callback: () => void) => unknown
+    }
+    if (documentWithTransitions.startViewTransition) {
+      documentWithTransitions.startViewTransition(update)
+      return
+    }
+
+    update()
   }
 
   onMounted(() => {

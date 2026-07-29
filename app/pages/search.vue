@@ -24,7 +24,10 @@ watch(query, (value) => {
   void router.replace({ query: value.trim() ? { q: value } : {} })
 })
 
-onMounted(() => input.value?.focus())
+onMounted(() => {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  window.setTimeout(() => input.value?.focus(), reduceMotion ? 0 : 70)
+})
 </script>
 
 <template>
@@ -33,7 +36,14 @@ onMounted(() => input.value?.focus())
     <div class="search-box">
       <Search :size="27" aria-hidden="true" />
       <label class="sr-only" for="search-notes">Search notes</label>
-      <input id="search-notes" ref="input" v-model="query" type="search" placeholder="Search every page…" />
+      <input
+        id="search-notes"
+        ref="input"
+        v-model="query"
+        type="search"
+        placeholder="Search every page…"
+        @keydown.esc.prevent="query = ''"
+      />
       <button v-if="query" type="button" aria-label="Clear search" @click="query = ''">
         <X :size="18" aria-hidden="true" />
       </button>
@@ -48,11 +58,15 @@ onMounted(() => input.value?.focus())
     <EmptyState
       v-else
       :title="query ? `No page mentions “${query}”` : 'Search the whole notebook.'"
-      :description="query ? 'Try fewer words, a tag, or another phrase.' : 'Titles, writing, and tags are all part of the search.'"
+      :description="
+        query ? 'Try fewer words, a tag, or another phrase.' : 'Titles, writing, and tags are all part of the search.'
+      "
     />
 
     <div v-if="results.length" class="search-index" aria-hidden="true">
-      <span v-for="note in results.slice(0, 6)" :key="note.id">{{ deriveNoteTitle(note.title, note.content).slice(0, 1) }}</span>
+      <span v-for="note in results.slice(0, 6)" :key="note.id">{{
+        deriveNoteTitle(note.title, note.content).slice(0, 1)
+      }}</span>
     </div>
   </div>
 </template>
@@ -71,6 +85,8 @@ onMounted(() => input.value?.focus())
   border-bottom: 2px solid var(--ink);
   margin: 0.5rem 0 1rem;
   padding: 0.7rem 0;
+  transform-origin: center left;
+  animation: search-settle 120ms var(--ease-out-quick) both;
 }
 
 .search-box input {
@@ -126,5 +142,33 @@ onMounted(() => input.value?.focus())
   color: var(--ink-faint);
   font-family: var(--font-mono);
   font-size: 0.6rem;
+}
+
+.search-page :deep(.empty-state) {
+  animation: search-helper-settle 120ms var(--ease-out-quick) 40ms both;
+}
+
+.search-page :deep(.empty-state__mark) {
+  animation: quill-float 4.5s var(--ease-in-out-soft) infinite;
+}
+
+@keyframes search-settle {
+  from {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+}
+
+@keyframes search-helper-settle {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+@keyframes quill-float {
+  50% {
+    transform: translateY(-2px);
+  }
 }
 </style>

@@ -1,15 +1,5 @@
 <script setup lang="ts">
-import {
-  Archive,
-  ArrowLeft,
-  Bold,
-  CheckSquare,
-  Code2,
-  Heading2,
-  List,
-  RotateCcw,
-  Trash2,
-} from "@lucide/vue"
+import { Archive, ArrowLeft, Bold, CheckSquare, Code2, Heading2, List, RotateCcw, Trash2 } from "@lucide/vue"
 import type { Note } from "~~/shared/types/note"
 
 const props = defineProps<{ note: Note }>()
@@ -53,6 +43,11 @@ const queueSave = () => {
   isEditing.value = true
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(flush, 700)
+}
+
+const handleBack = () => {
+  flush()
+  emit("back")
 }
 
 const insertMarkdown = (before: string, after = "", placeholder = "") => {
@@ -115,13 +110,15 @@ onBeforeUnmount(flush)
 <template>
   <article class="editor paper">
     <header class="editor__top">
-      <button class="editor__back" type="button" @click="flush(); $emit('back')">
+      <button class="editor__back" type="button" @click="handleBack">
         <ArrowLeft :size="17" aria-hidden="true" />
         <span>Notes</span>
       </button>
       <SyncIndicator compact />
       <span class="editor__updated mono">
-        {{ note.syncState === "local" ? "Saved on this device" : note.syncState === "conflict" ? "Conflict" : "Autosaved" }}
+        {{
+          note.syncState === "local" ? "Saved on this device" : note.syncState === "conflict" ? "Conflict" : "Autosaved"
+        }}
       </span>
       <div class="editor__actions">
         <button
@@ -133,7 +130,12 @@ onBeforeUnmount(flush)
           <RotateCcw v-if="note.archivedAt" :size="17" aria-hidden="true" />
           <Archive v-else :size="17" aria-hidden="true" />
         </button>
-        <button class="editor__icon-button editor__icon-button--danger" type="button" aria-label="Delete note" @click="$emit('delete')">
+        <button
+          class="editor__icon-button editor__icon-button--danger"
+          type="button"
+          aria-label="Delete note"
+          @click="$emit('delete')"
+        >
           <Trash2 :size="17" aria-hidden="true" />
         </button>
       </div>
@@ -153,7 +155,9 @@ onBeforeUnmount(flush)
       />
 
       <div class="editor__rule">
-        <span class="mono">{{ new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(new Date(note.createdAt)) }}</span>
+        <span class="mono">{{
+          new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(new Date(note.createdAt))
+        }}</span>
         <span aria-hidden="true">✦</span>
         <label class="editor__tags-label">
           <span class="sr-only">Tags separated by commas</span>
@@ -251,6 +255,10 @@ onBeforeUnmount(flush)
   border-radius: 50%;
   background: transparent;
   color: var(--ink-soft);
+  transition:
+    background-color var(--motion-fast) var(--ease-out-quick),
+    color var(--motion-fast) var(--ease-out-quick),
+    transform 80ms var(--ease-out-quick);
 }
 
 .editor__icon-button:hover {
@@ -260,6 +268,10 @@ onBeforeUnmount(flush)
 
 .editor__icon-button--danger:hover {
   color: var(--danger);
+}
+
+.editor__icon-button:active {
+  transform: scale(0.96);
 }
 
 .editor__page {
@@ -289,16 +301,28 @@ onBeforeUnmount(flush)
 }
 
 .editor__rule {
+  position: relative;
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
   gap: 0.75rem;
   align-items: center;
   border-top: 1px solid var(--line-strong);
-  border-bottom: 1px solid var(--line);
   margin: 2rem 0 0;
   padding: 0.75rem 0;
   color: var(--ink-faint);
   font-size: 0.66rem;
+}
+
+.editor__rule::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--line);
+  content: "";
+  transform: scaleX(0);
+  animation: editor-rule-settle 280ms var(--ease-out-quick) 60ms forwards;
 }
 
 .editor__tags-label {
@@ -336,11 +360,19 @@ onBeforeUnmount(flush)
   border-radius: 7px;
   background: transparent;
   color: var(--ink-soft);
+  transition:
+    background-color var(--motion-fast) var(--ease-out-quick),
+    color var(--motion-fast) var(--ease-out-quick),
+    transform 80ms var(--ease-out-quick);
 }
 
 .editor__toolbar button:hover {
   background: var(--paper-deep);
   color: var(--ink);
+}
+
+.editor__toolbar button:active {
+  transform: scale(0.96);
 }
 
 .editor__toolbar span {
@@ -367,6 +399,12 @@ onBeforeUnmount(flush)
 
 .editor__content::placeholder {
   color: var(--ink-faint);
+}
+
+@keyframes editor-rule-settle {
+  to {
+    transform: scaleX(1);
+  }
 }
 
 @media (max-width: 640px) {

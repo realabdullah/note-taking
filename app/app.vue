@@ -1,4 +1,28 @@
 <script setup lang="ts">
+const route = useRoute()
+const routeTransitionName = ref("page-forward")
+
+const routeRank = (path: string) => {
+  if (path === "/") return 0
+  if (path.startsWith("/notes")) return 1
+  if (path === "/search") return 2
+  if (path === "/archive") return 3
+  if (path === "/settings") return 4
+  return 0
+}
+
+watch(
+  () => route.path,
+  (to, from) => {
+    routeTransitionName.value = routeRank(to) >= routeRank(from ?? to) ? "page-forward" : "page-back"
+  },
+)
+
+const pageTransition = computed(() => ({
+  name: routeTransitionName.value,
+  mode: "out-in" as const,
+}))
+
 const themeInitScript = `(() => {
   try {
     const cookie = document.cookie.split("; ").find((entry) => entry.startsWith("fieldnote-theme="))
@@ -32,6 +56,6 @@ useHead({
 <template>
   <NuxtLoadingIndicator color="#1d4ed8" :height="2" />
   <NuxtLayout>
-    <NuxtPage />
+    <NuxtPage :transition="pageTransition" />
   </NuxtLayout>
 </template>

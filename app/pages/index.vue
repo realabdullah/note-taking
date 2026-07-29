@@ -11,11 +11,15 @@ useSeoMeta({
 const route = useRoute()
 const session = authClient.useSession()
 const { activeNotes, createNote, updateNote, isReady } = useNotes()
+const { isPending: isCapturePending, requestId } = useQuickCapture()
 const capture = ref("")
 const draftId = ref<string | null>(null)
 const greeting = ref("Good day")
 const captureField = ref<HTMLTextAreaElement | null>(null)
+const isSummoningCapture = ref(false)
 let captureTimer: ReturnType<typeof setTimeout> | null = null
+let summonTimer: number | null = null
+let focusTimer: number | null = null
 
 const recentNotes = computed(() => activeNotes.value.slice(0, 5))
 const uniqueTagCount = computed(() => new Set(activeNotes.value.flatMap((note) => note.tags)).size)
@@ -48,14 +52,42 @@ const newPage = async () => {
   await navigateTo(`/notes/${note.id}`)
 }
 
+const summonCapture = async () => {
+  if (summonTimer) clearTimeout(summonTimer)
+  if (focusTimer) clearTimeout(focusTimer)
+  isSummoningCapture.value = false
+  await nextTick()
+  isSummoningCapture.value = true
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  focusTimer = window.setTimeout(() => captureField.value?.focus(), reduceMotion ? 0 : 90)
+  summonTimer = window.setTimeout(
+    () => {
+      isSummoningCapture.value = false
+    },
+    reduceMotion ? 0 : 160,
+  )
+}
+
+watch(requestId, () => {
+  if (route.path !== "/") return
+  isCapturePending.value = false
+  void summonCapture()
+})
+
 onMounted(() => {
   const hour = new Date().getHours()
   greeting.value = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
-  if (route.query.capture === "1") captureField.value?.focus()
+  if (route.query.capture === "1" || isCapturePending.value) {
+    isCapturePending.value = false
+    void summonCapture()
+  }
 })
 
 onBeforeUnmount(() => {
   if (captureTimer) clearTimeout(captureTimer)
+  if (summonTimer) clearTimeout(summonTimer)
+  if (focusTimer) clearTimeout(focusTimer)
   void saveCapture()
 })
 </script>
@@ -74,7 +106,7 @@ onBeforeUnmount(() => {
       <Sparkles :size="44" aria-hidden="true" />
     </header>
 
-    <section class="quick-capture paper">
+    <section class="quick-capture paper" :class="{ 'quick-capture--summoning': isSummoningCapture }">
       <div class="quick-capture__label">
         <span class="quick-capture__mark"><Feather :size="20" aria-hidden="true" /></span>
         <span>
@@ -94,10 +126,10 @@ onBeforeUnmount(() => {
         @blur="saveCapture"
       />
       <footer>
-        <span class="mono">{{ draftId ? "Saved locally" : "Start typing to create a note" }}</span>
+        <span class="mono" aria-live="polite">{{ draftId ? "Saved locally" : "Start typing to create a note" }}</span>
         <button class="button button--primary" type="button" :disabled="!capture.trim()" @click="openDraft">
           Open full page
-          <ArrowRight :size="16" aria-hidden="true" />
+          <ArrowRight class="quick-capture__open-arrow" :size="16" aria-hidden="true" />
         </button>
       </footer>
     </section>
@@ -133,9 +165,7 @@ onBeforeUnmount(() => {
           <strong>{{ uniqueTagCount }}</strong>
           <span class="mono">THREADS</span>
         </div>
-        <p class="notebook-glance__thought">
-          “The palest ink is better than the best memory.”
-        </p>
+        <p class="notebook-glance__thought">“The palest ink is better than the best memory.”</p>
       </aside>
     </div>
   </div>
@@ -180,6 +210,11 @@ onBeforeUnmount(() => {
   overflow: hidden;
   margin-bottom: 3.5rem;
   padding: clamp(1.2rem, 4vw, 2rem);
+  transform-origin: 0 0;
+}
+
+.quick-capture--summoning {
+  animation: summon-capture 145ms var(--ease-out-summon) both;
 }
 
 .quick-capture::before {
@@ -240,6 +275,10 @@ onBeforeUnmount(() => {
   color: var(--ink-faint);
 }
 
+.quick-capture textarea:placeholder-shown:not(:focus)::placeholder {
+  animation: placeholder-breathe 3.6s var(--ease-in-out-soft) infinite;
+}
+
 .quick-capture footer {
   display: flex;
   align-items: center;
@@ -252,6 +291,27 @@ onBeforeUnmount(() => {
 .quick-capture footer > span {
   color: var(--ink-faint);
   font-size: 0.62rem;
+}
+
+.quick-capture__open-arrow {
+  transition: transform var(--motion-fast) var(--ease-out-quick);
+}
+
+.quick-capture footer .button:hover .quick-capture__open-arrow {
+  transform: translateX(3px);
+}
+
+@keyframes summon-capture {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes placeholder-breathe {
+  50% {
+    opacity: 0.64;
+  }
 }
 
 .capture-grid {

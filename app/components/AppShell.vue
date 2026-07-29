@@ -6,7 +6,7 @@ import { clearLocalUserData } from "~/lib/local-db.client"
 const route = useRoute()
 const session = authClient.useSession()
 const navigationOpen = ref(false)
-const notes = useNotes()
+const { requestQuickCapture } = useQuickCapture()
 
 const navigation = [
   { label: "Notes", to: "/notes", icon: FileText },
@@ -18,10 +18,11 @@ const navigation = [
 const isActive = (path: string) =>
   path === "/notes" ? route.path === "/notes" || route.path.startsWith("/notes/") : route.path === path
 
-const createNote = async () => {
-  const note = await notes.createNote()
+const activeNavigationIndex = computed(() => navigation.findIndex((item) => isActive(item.to)))
+
+const openQuickCapture = async () => {
   navigationOpen.value = false
-  await navigateTo(`/notes/${note.id}`)
+  await requestQuickCapture()
 }
 
 const signOut = async () => {
@@ -36,7 +37,7 @@ const handleShortcut = (event: KeyboardEvent) => {
 
   if (event.key.toLowerCase() === "n") {
     event.preventDefault()
-    void createNote()
+    void openQuickCapture()
   }
 
   if (event.key.toLowerCase() === "k") {
@@ -47,7 +48,10 @@ const handleShortcut = (event: KeyboardEvent) => {
 
 onMounted(() => window.addEventListener("keydown", handleShortcut))
 onBeforeUnmount(() => window.removeEventListener("keydown", handleShortcut))
-watch(() => route.fullPath, () => (navigationOpen.value = false))
+watch(
+  () => route.fullPath,
+  () => (navigationOpen.value = false),
+)
 </script>
 
 <template>
@@ -78,13 +82,18 @@ watch(() => route.fullPath, () => (navigationOpen.value = false))
         </span>
       </NuxtLink>
 
-      <button class="capture-button" type="button" @click="createNote">
+      <button class="capture-button" type="button" @click="openQuickCapture">
         <Plus :size="19" aria-hidden="true" />
         <span>Capture a note</span>
         <kbd>⌘N</kbd>
       </button>
 
-      <nav class="sidebar__nav">
+      <nav class="sidebar__nav" :style="{ '--active-index': Math.max(0, activeNavigationIndex) }">
+        <span
+          class="sidebar__nav-indicator"
+          :class="{ 'sidebar__nav-indicator--hidden': activeNavigationIndex < 0 }"
+          aria-hidden="true"
+        />
         <NuxtLink
           v-for="item in navigation"
           :key="item.to"
@@ -170,8 +179,7 @@ watch(() => route.fullPath, () => (navigationOpen.value = false))
   border-right: 1px solid var(--line);
   padding: 1.35rem;
   background:
-    linear-gradient(155deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 42%),
-    var(--paper-raised);
+    linear-gradient(155deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 42%), var(--paper-raised);
 }
 
 .sidebar__mobile-top {
@@ -229,8 +237,8 @@ watch(() => route.fullPath, () => (navigationOpen.value = false))
   color: white;
   text-align: left;
   transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
+    transform var(--motion-fast) var(--ease-out-quick),
+    box-shadow var(--motion-fast) var(--ease-out-quick);
 }
 
 .capture-button:hover {
@@ -260,11 +268,34 @@ kbd {
 }
 
 .sidebar__nav {
+  position: relative;
   display: grid;
   gap: 0.2rem;
 }
 
+.sidebar__nav-indicator {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 45px;
+  border-radius: 999px;
+  background: var(--accent);
+  pointer-events: none;
+  opacity: 1;
+  transform: translateY(calc(var(--active-index) * (45px + 0.2rem)));
+  transition:
+    opacity 80ms var(--ease-out-quick),
+    transform 180ms var(--ease-in-out-soft);
+}
+
+.sidebar__nav-indicator--hidden {
+  opacity: 0;
+}
+
 .nav-link {
+  position: relative;
   display: grid;
   min-height: 45px;
   grid-template-columns: auto 1fr auto;
@@ -276,18 +307,14 @@ kbd {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   transition:
-    color 150ms ease,
-    background 150ms ease;
+    color var(--motion-fast) var(--ease-out-quick),
+    background-color var(--motion-fast) var(--ease-out-quick);
 }
 
 .nav-link:hover,
 .nav-link--active {
   background: var(--paper-deep);
   color: var(--ink);
-}
-
-.nav-link--active {
-  box-shadow: inset 3px 0 var(--accent);
 }
 
 .sidebar__footer {
@@ -350,11 +377,19 @@ kbd {
   border-radius: 50%;
   background: transparent;
   color: var(--ink-soft);
+  transition:
+    background-color var(--motion-fast) var(--ease-out-quick),
+    color var(--motion-fast) var(--ease-out-quick),
+    transform 80ms var(--ease-out-quick);
 }
 
 .icon-button:hover {
   background: var(--paper-deep);
   color: var(--ink);
+}
+
+.icon-button:active {
+  transform: scale(0.96);
 }
 
 .sidebar-backdrop {
@@ -373,7 +408,7 @@ kbd {
   .sidebar {
     width: min(88vw, 340px);
     transform: translateX(-105%);
-    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 220ms var(--ease-out-quick);
   }
 
   .sidebar--open {

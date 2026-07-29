@@ -28,14 +28,14 @@ const displayTime = (value: string) => (hydrated.value ? formatRelativeTime(valu
 </script>
 
 <template>
-  <div class="note-list">
+  <TransitionGroup name="note-row" tag="div" class="note-list" appear>
     <NuxtLink
       v-for="(note, index) in notes"
       :key="note.id"
       :to="`/notes/${note.id}`"
       class="note-row"
       :class="{ 'note-row--selected': selectedId === note.id }"
-      :style="{ '--delay': `${Math.min(index, 10) * 32}ms` }"
+      :style="{ '--row-delay': `${Math.min(index, 4) * 24}ms` }"
     >
       <span class="note-row__number mono">{{ String(index + 1).padStart(2, "0") }}</span>
       <span class="note-row__body">
@@ -56,7 +56,7 @@ const displayTime = (value: string) => (hydrated.value ? formatRelativeTime(valu
         <ArrowUpRight v-else :size="15" aria-hidden="true" />
       </span>
     </NuxtLink>
-  </div>
+  </TransitionGroup>
 </template>
 
 <style scoped>
@@ -67,17 +67,17 @@ const displayTime = (value: string) => (hydrated.value ? formatRelativeTime(valu
 
 .note-row {
   display: grid;
+  overflow: hidden;
   min-height: 116px;
+  max-height: 180px;
   grid-template-columns: 38px minmax(0, 1fr) auto;
   gap: 1rem;
   align-items: start;
   border-bottom: 1px solid var(--line);
   padding: 1.15rem 0.25rem;
-  animation: row-in 420ms both;
-  animation-delay: var(--delay);
   transition:
-    padding 180ms ease,
-    background 180ms ease;
+    padding var(--motion-fast) var(--ease-out-quick),
+    background-color var(--motion-fast) var(--ease-out-quick);
 }
 
 .note-row:hover,
@@ -139,13 +139,58 @@ const displayTime = (value: string) => (hydrated.value ? formatRelativeTime(valu
   padding-top: 0.2rem;
   color: var(--ink-faint);
   font-size: 0.63rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.72;
+  transition: opacity var(--motion-fast) var(--ease-out-quick);
 }
 
-@keyframes row-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
+.note-row__meta svg {
+  opacity: 0.45;
+  transform: translateX(-2px);
+  transition:
+    opacity var(--motion-fast) var(--ease-out-quick),
+    transform var(--motion-fast) var(--ease-out-quick);
+}
+
+.note-row:hover .note-row__meta,
+.note-row:hover .note-row__meta svg,
+.note-row--selected .note-row__meta,
+.note-row--selected .note-row__meta svg {
+  opacity: 1;
+}
+
+.note-row:hover .note-row__meta svg,
+.note-row--selected .note-row__meta svg {
+  transform: translateX(0);
+}
+
+.note-row-enter-active {
+  transition:
+    min-height 140ms var(--ease-out-quick) var(--row-delay),
+    max-height 140ms var(--ease-out-quick) var(--row-delay),
+    padding 140ms var(--ease-out-quick) var(--row-delay),
+    opacity 120ms var(--ease-out-quick) var(--row-delay);
+}
+
+.note-row-leave-active {
+  transition:
+    min-height 300ms var(--ease-in-out-soft),
+    max-height 300ms var(--ease-in-out-soft),
+    padding 300ms var(--ease-in-out-soft),
+    opacity 180ms var(--ease-in-out-soft);
+}
+
+.note-row-move {
+  transition: transform 280ms var(--ease-in-out-soft);
+}
+
+.note-row-enter-from,
+.note-row-leave-to {
+  min-height: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
 }
 
 @media (max-width: 560px) {

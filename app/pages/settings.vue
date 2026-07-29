@@ -13,6 +13,9 @@ const newPassword = ref("")
 const pending = ref(false)
 const message = ref("")
 const errorMessage = ref("")
+const canChangePassword = computed(
+  () => currentPassword.value.length > 0 && newPassword.value.length >= 8 && newPassword.value.length <= 128,
+)
 
 const themes: Array<{ value: ThemePreference; label: string; icon: typeof Sun }> = [
   { value: "light", label: "Light", icon: Sun },
@@ -65,12 +68,15 @@ const changePassword = async () => {
           v-for="theme in themes"
           :key="theme.value"
           type="button"
+          :aria-pressed="preference === theme.value"
           :class="{ active: preference === theme.value }"
           @click="setTheme(theme.value)"
         >
           <component :is="theme.icon" :size="20" aria-hidden="true" />
           <span>{{ theme.label }}</span>
-          <Check v-if="preference === theme.value" :size="16" aria-hidden="true" />
+          <span v-if="preference === theme.value" class="theme-selection" aria-hidden="true">
+            <Check :size="14" />
+          </span>
         </button>
       </div>
     </section>
@@ -107,9 +113,16 @@ const changePassword = async () => {
             required
           />
         </div>
-        <p v-if="errorMessage" class="settings-message settings-message--error" role="alert">{{ errorMessage }}</p>
+        <p v-if="errorMessage" class="settings-message settings-message--error" role="alert">
+          {{ errorMessage }}
+        </p>
         <p v-if="message" class="settings-message" role="status">{{ message }}</p>
-        <button class="button button--primary" type="submit" :disabled="pending">
+        <button
+          class="button button--primary password-form__submit"
+          :class="{ 'password-form__submit--ready': canChangePassword && !pending }"
+          type="submit"
+          :disabled="pending || !canChangePassword"
+        >
           {{ pending ? "Updating…" : "Change password" }}
         </button>
       </form>
@@ -179,11 +192,35 @@ const changePassword = async () => {
   padding: 1rem;
   background: var(--paper-raised);
   text-align: left;
+  transition:
+    border-color var(--motion-fast) var(--ease-out-quick),
+    box-shadow var(--motion-fast) var(--ease-out-quick),
+    background-color 200ms var(--ease-in-out-soft),
+    transform 80ms var(--ease-out-quick);
+}
+
+.theme-grid button:hover {
+  background: var(--paper-deep);
+}
+
+.theme-grid button:active {
+  transform: scale(0.96);
 }
 
 .theme-grid button.active {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.theme-selection {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+  view-transition-name: theme-selection;
 }
 
 .password-form {
@@ -204,6 +241,16 @@ const changePassword = async () => {
 
 .settings-message--error {
   color: var(--danger);
+}
+
+.password-form__submit {
+  filter: saturate(0.72);
+  opacity: 0.62;
+}
+
+.password-form__submit--ready {
+  filter: saturate(1);
+  opacity: 1;
 }
 
 @media (max-width: 720px) {

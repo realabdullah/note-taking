@@ -19,16 +19,29 @@ const remove = async () => {
   await deleteNote(note.value.id)
   await navigateTo(note.value.archivedAt ? "/archive" : "/notes")
 }
+
+const archive = async () => {
+  if (!note.value) return
+  await changeArchiveState(note.value.id, true)
+  await navigateTo("/notes")
+}
+
+const restore = async () => {
+  if (!note.value) return
+  await changeArchiveState(note.value.id, false)
+  await navigateTo("/notes")
+}
 </script>
 
 <template>
   <div class="page note-page">
     <NoteEditor
       v-if="note"
+      :key="note.id"
       :note="note"
       @save="updateNote(note.id, $event)"
-      @archive="changeArchiveState(note.id, true); navigateTo('/notes')"
-      @restore="changeArchiveState(note.id, false); navigateTo('/notes')"
+      @archive="archive"
+      @restore="restore"
       @delete="remove"
       @back="navigateTo(note.archivedAt ? '/archive' : '/notes')"
     />
