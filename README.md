@@ -1,96 +1,44 @@
-# Notes Taking (In Progress)
+# Fieldnote
 
-A web application for taking and managing notes with support for archiving, tagging, and customizable preferences. Built with Nuxt.js and supports both local IndexedDB storage (powered by Dexie.js) and Appwrite.
+Fieldnote is a local-first, cross-device notebook built for fast capture during meetings, demos, and courses.
 
-## Features
+## Stack
 
-- Create, edit, and delete notes
-- Archive and unarchive functionality
-- Tag notes
-- User preferences
-  - Font customization
-  - Dark/Light theme toggle
-- Flexible storage options (Local IndexedDB or Appwrite as backend)
-
-## Prerequisites
-
-- Node.js (v18 or higher recommended)
-- npm or yarn
-- Appwrite instance (if using Appwrite as backend)
+- Nuxt 4 and Vue 3
+- Neon PostgreSQL and Drizzle ORM
+- Better Auth
+- Dexie for offline storage and synchronization
+- Vite PWA
+- Vitest and Playwright
 
 ## Setup
 
-1. Clone the repository:
+```bash
+pnpm install
+cp .env.example .env
+pnpm db:migrate
+pnpm dev
+```
+
+Create a Neon database and add its pooled connection string to `NUXT_DATABASE_URL`.
+
+Authentication email delivery uses Resend's HTTP API. In development, verification and password-reset links are logged when no Resend key is configured.
+
+Google login is enabled when both Google OAuth environment variables are present.
+
+## Commands
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+pnpm dev
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm test:e2e
+pnpm build
+pnpm db:generate
+pnpm db:migrate
 ```
 
-2. Install dependencies:
+## Sync model
 
-```bash
-npm install
-# or
-yarn install
-```
-
-3. Configure environment variables:
-Create a `.env` file in the root directory and add the following variables:
-
-```env
-VITE_APPWRITE_ENDPOINT= # Appwrite API endpoint
-VITE_APPWRITE_PROJECT_ID=     # Your Appwrite project ID
-VITE_APPWRITE_DATABASE_ID=    # Your Appwrite database ID
-VITE_APPWRITE_COLLECTION_ID=  # Your Appwrite collection ID
-```
-
-## Database Configuration
-
-The application supports dynamic database selection through the user interface on auth pages. You can choose your preferred storage method during authentication:
-
-### Option 1: Local IndexedDB
-
-1. No additional configuration needed
-2. Data is stored locally in the browser
-3. Suitable for personal use or offline-first applications
-
-### Option 2: Appwrite as backend
-
-1. Requires proper Appwrite configuration in the .env file
-2. Provides cloud storage and synchronization capabilities
-3. Ensure your Appwrite instance is properly set up with:
-   - A project created
-   - Database and collection configured
-   - Ensure your Appwrite instance is properly set up with:
-      - A project created
-      - Database and collection configured
-      - Appropriate security rules and permissions
-
-Note: Appwrite environment variables must be configured even if some users only use IndexedDB, as this enables others to choose Appwrite as their storage option.
-
-## Development
-
-Start the development server:
-
-```bash
-npm run dev -- -o
-# or
-yarn dev --open
-```
-
-## Building for Production
-
-```bash
-npm run build
-# or
-yarn build
-```
-
-## API Plugin
-
-The application uses a plugin system to handle API initialization and user preferences. The API plugin:
-
-- Dynamically initializes either IndexedDB or Appwrite backend based on user selection
-- Handles user preferences synchronization
-- Provides API instance throughout the application
+PostgreSQL is the durable source of truth. Notes are mirrored to IndexedDB and edits are queued locally before being synchronized. API responses are never cached by the service worker; offline note access is owned by Dexie.
