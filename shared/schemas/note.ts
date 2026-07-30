@@ -3,6 +3,7 @@ import { z } from "zod"
 const trimmedText = (max: number) => z.string().trim().max(max)
 
 export const noteIdSchema = z.uuid()
+export const noteShareTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{43}$/)
 
 export const createNoteSchema = z.object({
   id: z.uuid().optional(),

@@ -97,6 +97,23 @@ export const notes = pgTable(
   ],
 )
 
+export const noteShares = pgTable(
+  "note_shares",
+  {
+    noteId: uuid("note_id")
+      .primaryKey()
+      .references(() => notes.id, { onDelete: "cascade" }),
+    token: text("token").notNull(),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    tags: text("tags").array().notNull(),
+    noteCreatedAt: timestamp("note_created_at", { withTimezone: true }).notNull(),
+    noteUpdatedAt: timestamp("note_updated_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("note_shares_token_idx").on(table.token)],
+)
+
 export const tags = pgTable(
   "tags",
   {

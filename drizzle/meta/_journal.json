@@ -8,6 +8,13 @@
       "when": 1785326784034,
       "tag": "0000_rapid_viper",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785423882547,
+      "tag": "0001_right_skaar",
+      "breakpoints": true
     }
   ]
 }
