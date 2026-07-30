@@ -72,16 +72,16 @@
 <style scoped>
 	.shared-page {
 		min-height: 100dvh;
-		padding: 1.2rem clamp(1rem, 4vw, 4rem) 5rem;
+		padding: 0.75rem clamp(1rem, 4vw, 4rem) 3rem;
 	}
 
 	.shared-page__header {
 		display: flex;
-		width: min(980px, 100%);
-		min-height: 64px;
+		width: min(1180px, 100%);
+		min-height: 52px;
 		align-items: center;
 		justify-content: space-between;
-		margin: 0 auto 1.2rem;
+		margin: 0 auto 0.75rem;
 	}
 
 	.shared-page__brand {
@@ -92,13 +92,13 @@
 
 	.shared-page__brand-mark {
 		display: grid;
-		width: 38px;
-		height: 38px;
+		width: 32px;
+		height: 32px;
 		place-items: center;
 		border-radius: 50% 50% 48% 52%;
 		background: var(--ink);
 		color: var(--paper);
-		font-size: 1.1rem;
+		font-size: 0.95rem;
 		transform: rotate(-4deg);
 	}
 
@@ -118,30 +118,30 @@
 	.shared-page__read-only {
 		border: 1px solid var(--line);
 		border-radius: 999px;
-		padding: 0.42rem 0.68rem;
+		padding: 0.35rem 0.6rem;
 	}
 
 	.shared-note {
-		width: min(980px, 100%);
-		min-height: calc(100dvh - 9rem);
+		width: min(1180px, 100%);
 		margin: 0 auto;
 		overflow: hidden;
 	}
 
 	.shared-note__page {
-		width: min(780px, 100%);
+		width: min(1000px, 100%);
 		margin: 0 auto;
-		padding: clamp(3rem, 9vw, 7rem) clamp(1.2rem, 6vw, 4.5rem) 7rem;
+		padding: clamp(2rem, 4vw, 2.75rem) clamp(1.2rem, 5vw, 4.5rem) clamp(3rem, 7vw, 5rem);
 	}
 
 	.shared-note h1,
 	.shared-missing h1 {
-		margin: 0.7rem 0 0;
-		font-size: clamp(2.5rem, 8vw, 5.3rem);
+		margin: 0.45rem 0 0;
+		font-size: clamp(2rem, 4.75vw, 3.3rem);
 		font-weight: 600;
-		letter-spacing: -0.06em;
-		line-height: 0.95;
+		letter-spacing: -0.04em;
+		line-height: 1.04;
 		overflow-wrap: anywhere;
+		text-wrap: balance;
 	}
 
 	.shared-note__rule {
@@ -151,8 +151,8 @@
 		gap: 0.75rem;
 		border-top: 1px solid var(--line-strong);
 		border-bottom: 1px solid var(--line);
-		margin-top: 2rem;
-		padding: 0.75rem 0;
+		margin-top: 1.25rem;
+		padding: 0.6rem 0;
 		color: var(--ink-faint);
 		font-size: 0.66rem;
 	}
@@ -169,9 +169,9 @@
 	}
 
 	.shared-note__content {
-		padding-top: 2rem;
-		font-size: clamp(1.05rem, 2vw, 1.2rem);
-		line-height: 1.85;
+		padding-top: 1.25rem;
+		font-size: clamp(1rem, 0.25vw + 0.94rem, 1.05rem);
+		line-height: 1.68;
 		overflow-wrap: anywhere;
 		white-space: pre-wrap;
 	}
@@ -203,7 +203,21 @@
 
 	@media (max-width: 600px) {
 		.shared-page {
-			padding-inline: 0.7rem;
+			padding: 0.5rem 0.6rem 2rem;
+		}
+
+		.shared-page__header {
+			min-height: 48px;
+			margin-bottom: 0.5rem;
+			padding-inline: 0.2rem;
+		}
+
+		.shared-page__brand {
+			gap: 0.55rem;
+		}
+
+		.shared-note__page {
+			padding: 1.75rem 1.1rem 3rem;
 		}
 
 		.shared-note__rule {
