@@ -5,6 +5,7 @@ const route = useRoute()
 const { notes, isReady, updateNote, changeArchiveState, deleteNote } = useNotes()
 const noteId = computed(() => String(route.params.id))
 const note = computed(() => notes.value.find((item) => item.id === noteId.value))
+const shareDialogOpen = ref(false)
 
 useSeoMeta({ title: () => `${note.value?.title || "Note"} · Fieldnote` })
 
@@ -43,11 +44,19 @@ const restore = async () => {
       @archive="archive"
       @restore="restore"
       @delete="remove"
+      @share="shareDialogOpen = true"
       @back="navigateTo(note.archivedAt ? '/archive' : '/notes')"
     />
     <div v-else class="note-loading paper" role="status">
       <span class="mono">TURNING TO THAT PAGE…</span>
     </div>
+    <NoteShareDialog
+      v-if="note"
+      :note-id="note.id"
+      :open="shareDialogOpen"
+      :sync-state="note.syncState"
+      @close="shareDialogOpen = false"
+    />
   </div>
 </template>
 

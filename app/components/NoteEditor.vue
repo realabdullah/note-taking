@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { Archive, ArrowLeft, Bold, CheckSquare, Code2, Heading2, List, RotateCcw, Trash2 } from "@lucide/vue"
+import {
+  Archive,
+  ArrowLeft,
+  Bold,
+  CheckSquare,
+  Code2,
+  Heading2,
+  List,
+  RotateCcw,
+  Share2,
+  Trash2,
+} from "@lucide/vue"
 import type { Note } from "~~/shared/types/note"
 
 const props = defineProps<{ note: Note }>()
@@ -8,6 +19,7 @@ const emit = defineEmits<{
   archive: []
   restore: []
   delete: []
+  share: []
   back: []
 }>()
 
@@ -48,6 +60,11 @@ const queueSave = () => {
 const handleBack = () => {
   flush()
   emit("back")
+}
+
+const handleShare = () => {
+  flush()
+  emit("share")
 }
 
 const insertMarkdown = (before: string, after = "", placeholder = "") => {
@@ -121,6 +138,14 @@ onBeforeUnmount(flush)
         }}
       </span>
       <div class="editor__actions">
+        <button
+          class="editor__icon-button"
+          type="button"
+          aria-label="Share note"
+          @click="handleShare"
+        >
+          <Share2 :size="17" aria-hidden="true" />
+        </button>
         <button
           class="editor__icon-button"
           type="button"
