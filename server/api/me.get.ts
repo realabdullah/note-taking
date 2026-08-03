@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const currentUser = await requireUser(event)
+  const currentUser = await requireSessionUser(event)
 
   return {
     user: {

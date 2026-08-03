@@ -2,7 +2,7 @@ import { createNoteSchema } from "~~/shared/schemas/note"
 import { noteService } from "../../services/notes"
 
 export default defineEventHandler(async (event) => {
-  const currentUser = await requireUser(event)
+  const currentUser = await requireWriteUser(event)
   const body = await readValidatedBody(event, createNoteSchema.parse)
   const note = await noteService.create(currentUser.id, body)
 

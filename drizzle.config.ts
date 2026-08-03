@@ -1,5 +1,11 @@
 import { defineConfig } from "drizzle-kit"
 
+try {
+  process.loadEnvFile()
+} catch {
+  // .env is optional; fall back to the local default connection string below
+}
+
 export default defineConfig({
   dialect: "postgresql",
   schema: "./server/database/schema.ts",

@@ -144,6 +144,26 @@ export const noteTags = pgTable(
   ],
 )
 
+export const personalAccessTokens = pgTable(
+  "personal_access_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    tokenPrefix: text("token_prefix").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("personal_access_tokens_hash_idx").on(table.tokenHash),
+    index("personal_access_tokens_user_idx").on(table.userId),
+  ],
+)
+
 export const noteRevisions = pgTable(
   "note_revisions",
   {

@@ -132,6 +132,17 @@ const changePassword = async () => {
       <header>
         <span class="settings-section__number mono">03</span>
         <div>
+          <h2>Personal access tokens</h2>
+          <p>Let external apps read your notes over the API without your password.</p>
+        </div>
+      </header>
+      <PersonalAccessTokens />
+    </section>
+
+    <section class="settings-section">
+      <header>
+        <span class="settings-section__number mono">04</span>
+        <div>
           <h2>Install</h2>
           <p>Add Fieldnote to your home screen for a focused, full-screen notebook.</p>
         </div>
