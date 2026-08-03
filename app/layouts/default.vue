@@ -7,7 +7,7 @@ const { data: session } = await authClient.useSession(useFetch)
 </script>
 
 <template>
-  <AppShell v-if="session">
+  <AppShell v-if="session?.user">
     <slot />
   </AppShell>
 </template>
