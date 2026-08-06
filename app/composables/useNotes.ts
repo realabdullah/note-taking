@@ -2,6 +2,7 @@ import type { CreateNoteInput, Note, NotesPage, SyncMutation, UpdateNoteInput } 
 import { getLocalDatabase } from "~/lib/local-db.client"
 
 const RETRY_DELAYS = [2_000, 5_000, 15_000, 60_000, 5 * 60_000]
+let activeSyncPromise: Promise<boolean> | null = null
 
 const sortNotes = (notes: Note[]) =>
   [...notes].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
@@ -49,15 +50,18 @@ export const useNotes = () => {
       (await db.pendingMutations.where("userId").equals(userId).toArray()).map((item) => item.entityId),
     )
     const remoteNotes: Note[] = []
-    let cursor: string | undefined
 
-    do {
-      const page = await $fetch<NotesPage>("/api/notes", {
-        query: { limit: 100, cursor },
-      })
-      remoteNotes.push(...page.notes)
-      cursor = page.nextCursor ?? undefined
-    } while (cursor)
+    for (const archived of [false, true]) {
+      let cursor: string | undefined
+
+      do {
+        const page = await $fetch<NotesPage>("/api/notes", {
+          query: { limit: 100, cursor, archived },
+        })
+        remoteNotes.push(...page.notes)
+        cursor = page.nextCursor ?? undefined
+      } while (cursor)
+    }
 
     for (const note of remoteNotes) {
       if (!pendingIds.has(note.id)) {
@@ -142,47 +146,50 @@ export const useNotes = () => {
     await db.syncMetadata.update(mutation.userId, { lastSyncedAt: syncedAt })
   }
 
-  const sync = async ({ pull = false }: { pull?: boolean } = {}) => {
-    if (
-      !import.meta.client ||
-      !activeUserId.value ||
-      !navigator.onLine ||
-      isSyncing.value
-    ) {
-      return
+  const performSync = async ({ pull = false }: { pull?: boolean } = {}) => {
+    if (!import.meta.client || !activeUserId.value || !navigator.onLine) {
+      return false
     }
 
     const db = getLocalDatabase()
     isSyncing.value = true
     syncError.value = null
 
+    let completed = true
+
     try {
-      const pending = await db.pendingMutations
-        .where("userId")
-        .equals(activeUserId.value)
-        .sortBy("createdAt")
+      let hasProcessedMutations = true
 
-      for (const mutation of pending) {
-        if (mutation.nextAttemptAt && Date.parse(mutation.nextAttemptAt) > Date.now()) continue
+      while (hasProcessedMutations) {
+        hasProcessedMutations = false
+        const pending = await db.pendingMutations.where("userId").equals(activeUserId.value).sortBy("createdAt")
 
-        try {
-          await applyMutation(mutation)
-        } catch {
-          const attempts = mutation.attempts + 1
-          const retryDelay = RETRY_DELAYS[Math.min(attempts - 1, RETRY_DELAYS.length - 1)] ?? 5 * 60_000
-          await db.pendingMutations.put({
-            ...mutation,
-            attempts,
-            nextAttemptAt: new Date(Date.now() + retryDelay).toISOString(),
-          })
-          syncError.value = "Some changes are waiting to sync."
-          break
+        for (const mutation of pending) {
+          if (mutation.nextAttemptAt && Date.parse(mutation.nextAttemptAt) > Date.now()) continue
+
+          try {
+            await applyMutation(mutation)
+            hasProcessedMutations = true
+          } catch {
+            const attempts = mutation.attempts + 1
+            const retryDelay = RETRY_DELAYS[Math.min(attempts - 1, RETRY_DELAYS.length - 1)] ?? 5 * 60_000
+            await db.pendingMutations.put({
+              ...mutation,
+              attempts,
+              nextAttemptAt: new Date(Date.now() + retryDelay).toISOString(),
+            })
+            syncError.value = "Some changes are saved on this device and waiting to sync."
+            completed = false
+            hasProcessedMutations = false
+            break
+          }
         }
       }
 
       if (pull) await pullRemoteNotes(activeUserId.value)
     } catch {
       syncError.value = "Could not reach the notebook server."
+      completed = false
     } finally {
       isSyncing.value = false
 
@@ -194,6 +201,24 @@ export const useNotes = () => {
         if (remaining) window.setTimeout(() => void sync(), 250)
       }
     }
+
+    return completed
+  }
+
+  const sync = ({ pull = false }: { pull?: boolean } = {}) => {
+    if (activeSyncPromise) return activeSyncPromise
+
+    const syncPromise = performSync({ pull })
+    activeSyncPromise = syncPromise
+    void syncPromise.then(
+      () => {
+        if (activeSyncPromise === syncPromise) activeSyncPromise = null
+      },
+      () => {
+        if (activeSyncPromise === syncPromise) activeSyncPromise = null
+      },
+    )
+    return syncPromise
   }
 
   const initialize = async (userId: string) => {
@@ -282,10 +307,10 @@ export const useNotes = () => {
   }
 
   const changeArchiveState = async (noteId: string, archived: boolean) => {
-    if (!activeUserId.value) return
+    if (!activeUserId.value) throw new Error("A user session is required")
     const db = getLocalDatabase()
     const current = await db.cachedNotes.get(noteId)
-    if (!current) return
+    if (!current) throw new Error("The note could not be found on this device")
 
     const now = new Date().toISOString()
     const updated: Note = {
@@ -307,7 +332,7 @@ export const useNotes = () => {
       attempts: 0,
       nextAttemptAt: null,
     })
-    void sync()
+    return { note: updated, syncPromise: sync() }
   }
 
   const deleteNote = async (noteId: string) => {

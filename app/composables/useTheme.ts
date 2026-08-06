@@ -1,53 +1,49 @@
-export type ThemePreference = "light" | "dark" | "system"
+export type AppearancePreference = "light" | "dark" | "system";
+export type ThemePreference = AppearancePreference;
+export type ColorTheme = "aubergine" | "moss" | "tide" | "clay";
 
 export const useTheme = () => {
-  const preference = useCookie<ThemePreference>("fieldnote-theme", {
-    default: () => "system",
-    sameSite: "lax",
-  })
+	const preference = useCookie<AppearancePreference>("fieldnote-theme", {
+		default: () => "system",
+		sameSite: "lax",
+	});
+	const colorTheme = useCookie<ColorTheme>("fieldnote-color-theme", {
+		default: () => "aubergine",
+		sameSite: "lax",
+	});
 
-  const applyTheme = () => {
-    if (!import.meta.client) return
-    const resolved =
-      preference.value === "system"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : preference.value
+	const applyTheme = () => {
+		if (!import.meta.client) return;
+		const resolved =
+			preference.value === "system"
+				? window.matchMedia("(prefers-color-scheme: dark)").matches
+					? "dark"
+					: "light"
+				: preference.value;
 
-    document.documentElement.dataset.theme = resolved
-  }
+		document.documentElement.dataset.theme = resolved;
+		document.documentElement.dataset.palette = colorTheme.value;
+	};
 
-  const setTheme = (next: ThemePreference) => {
-    if (preference.value === next) return
+	const setColorTheme = (next: ColorTheme) => {
+		if (colorTheme.value === next) return;
+		colorTheme.value = next;
+		applyTheme();
+	};
 
-    const update = () => {
-      preference.value = next
-      applyTheme()
-    }
+	const setTheme = (next: ThemePreference) => {
+		if (preference.value === next) return;
 
-    if (!import.meta.client || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      update()
-      return
-    }
+		preference.value = next;
+		applyTheme();
+	};
 
-    const documentWithTransitions = document as Document & {
-      startViewTransition?: (callback: () => void) => unknown
-    }
-    if (documentWithTransitions.startViewTransition) {
-      documentWithTransitions.startViewTransition(update)
-      return
-    }
+	onMounted(() => {
+		const media = window.matchMedia("(prefers-color-scheme: dark)");
+		applyTheme();
+		media.addEventListener("change", applyTheme);
+		onBeforeUnmount(() => media.removeEventListener("change", applyTheme));
+	});
 
-    update()
-  }
-
-  onMounted(() => {
-    const media = window.matchMedia("(prefers-color-scheme: dark)")
-    applyTheme()
-    media.addEventListener("change", applyTheme)
-    onBeforeUnmount(() => media.removeEventListener("change", applyTheme))
-  })
-
-  return { preference, setTheme }
-}
+	return { preference, colorTheme, setTheme, setColorTheme };
+};

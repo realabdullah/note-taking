@@ -199,7 +199,11 @@
 
 <style scoped>
 	.share-dialog {
+		position: fixed;
+		inset: 0;
 		width: min(520px, calc(100% - 2rem));
+		max-height: min(720px, calc(100dvh - 2rem));
+		margin: auto;
 		border: 1px solid var(--line-strong);
 		border-radius: var(--radius-lg);
 		padding: clamp(1.5rem, 5vw, 2.4rem);

@@ -195,15 +195,21 @@
 	.pat {
 		display: grid;
 		gap: 1.25rem;
-		margin-left: 60px;
 	}
 
 	.pat-form {
 		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
 		align-items: end;
 		gap: 1rem;
-		padding: 1rem;
+		border-radius: 28px 28px 8px 28px;
+		padding: 1.25rem;
+		background: var(--surface);
+		box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.42);
+	}
+
+	.pat-form > svg {
+		display: none;
 	}
 
 	.pat-message {
@@ -218,6 +224,7 @@
 	.pat-created {
 		display: grid;
 		gap: 0.85rem;
+		border-radius: 28px 28px 8px 28px;
 		padding: 1.25rem;
 	}
 
@@ -246,7 +253,8 @@
 
 	.pat-list {
 		overflow: hidden;
-		border-top: 1px solid var(--line-strong);
+		border-radius: 22px 22px 7px 22px;
+		background: var(--surface);
 	}
 
 	.pat-row {
@@ -255,7 +263,7 @@
 		align-items: center;
 		gap: 1rem;
 		border-bottom: 1px solid var(--line);
-		padding: 0.85rem 0.25rem;
+		padding: 0.95rem 1rem;
 	}
 
 	.pat-row__identity {
@@ -336,6 +344,9 @@
 
 	.pat-empty {
 		margin: 0;
+		border-radius: 22px 22px 7px 22px;
+		padding: 1.2rem;
+		background: var(--surface);
 		color: var(--ink-faint);
 		font-size: 0.7rem;
 	}
