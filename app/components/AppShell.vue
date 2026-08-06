@@ -136,7 +136,6 @@ watch(
     </main>
 
     <InstallPromptBanner />
-    <ConflictDialog />
   </div>
 </template>
 

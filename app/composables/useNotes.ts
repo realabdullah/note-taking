@@ -1,32 +1,13 @@
-import type {
-  ConflictPayload,
-  CreateNoteInput,
-  Note,
-  NotesPage,
-  SyncMutation,
-  UpdateNoteInput,
-} from "~~/shared/types/note"
-import { getLocalDatabase, type LocalConflict } from "~/lib/local-db.client"
+import type { CreateNoteInput, Note, NotesPage, SyncMutation, UpdateNoteInput } from "~~/shared/types/note"
+import { getLocalDatabase } from "~/lib/local-db.client"
 
 const RETRY_DELAYS = [2_000, 5_000, 15_000, 60_000, 5 * 60_000]
 
 const sortNotes = (notes: Note[]) =>
   [...notes].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
 
-const extractConflict = (error: unknown): ConflictPayload | null => {
-  const fetchError = error as {
-    response?: { status?: number; _data?: { data?: ConflictPayload } }
-    statusCode?: number
-    data?: ConflictPayload
-  }
-
-  if ((fetchError.response?.status ?? fetchError.statusCode) !== 409) return null
-  return fetchError.response?._data?.data ?? fetchError.data ?? null
-}
-
 export const useNotes = () => {
   const notes = useState<Note[]>("notes", () => [])
-  const conflicts = useState<LocalConflict[]>("note-conflicts", () => [])
   const activeUserId = useState<string | null>("notes-user-id", () => null)
   const isReady = useState("notes-ready", () => false)
   const isSyncing = useState("notes-syncing", () => false)
@@ -39,14 +20,12 @@ export const useNotes = () => {
 
   const loadFromCache = async (userId: string) => {
     const db = getLocalDatabase()
-    const [cachedNotes, cachedConflicts, metadata] = await Promise.all([
+    const [cachedNotes, metadata] = await Promise.all([
       db.cachedNotes.where("userId").equals(userId).toArray(),
-      db.conflicts.where("userId").equals(userId).reverse().sortBy("createdAt"),
       db.syncMetadata.get(userId),
     ])
 
     notes.value = sortNotes(cachedNotes)
-    conflicts.value = cachedConflicts
     lastSyncedAt.value = metadata?.lastSyncedAt ?? null
   }
 
@@ -140,18 +119,6 @@ export const useNotes = () => {
       const laterMutations = await db.pendingMutations.where("entityId").equals(mutation.entityId).toArray()
 
       if (laterMutations.length) {
-        for (const laterMutation of laterMutations) {
-          if ("expectedVersion" in laterMutation.payload) {
-            await db.pendingMutations.put({
-              ...laterMutation,
-              payload: {
-                ...laterMutation.payload,
-                expectedVersion: remoteNote.version,
-              },
-            })
-          }
-        }
-
         const localNote = await db.cachedNotes.get(mutation.entityId)
         if (localNote) {
           const pendingNote: Note = {
@@ -169,9 +136,13 @@ export const useNotes = () => {
         replaceNote(syncedNote)
       }
     }
+
+    const syncedAt = new Date().toISOString()
+    lastSyncedAt.value = syncedAt
+    await db.syncMetadata.update(mutation.userId, { lastSyncedAt: syncedAt })
   }
 
-  const sync = async () => {
+  const sync = async ({ pull = false }: { pull?: boolean } = {}) => {
     if (
       !import.meta.client ||
       !activeUserId.value ||
@@ -196,25 +167,7 @@ export const useNotes = () => {
 
         try {
           await applyMutation(mutation)
-        } catch (error) {
-          const conflict = extractConflict(error)
-
-          if (conflict) {
-            const record: LocalConflict = {
-              ...conflict,
-              id: conflict.revision.id,
-              userId: activeUserId.value,
-              noteId: conflict.note.id,
-              createdAt: new Date().toISOString(),
-            }
-            await db.conflicts.put(record)
-            await db.cachedNotes.put({ ...conflict.note, syncState: "conflict" })
-            await db.pendingMutations.delete(mutation.id)
-            conflicts.value = [record, ...conflicts.value]
-            replaceNote({ ...conflict.note, syncState: "conflict" })
-            continue
-          }
-
+        } catch {
           const attempts = mutation.attempts + 1
           const retryDelay = RETRY_DELAYS[Math.min(attempts - 1, RETRY_DELAYS.length - 1)] ?? 5 * 60_000
           await db.pendingMutations.put({
@@ -227,7 +180,7 @@ export const useNotes = () => {
         }
       }
 
-      await pullRemoteNotes(activeUserId.value)
+      if (pull) await pullRemoteNotes(activeUserId.value)
     } catch {
       syncError.value = "Could not reach the notebook server."
     } finally {
@@ -248,7 +201,7 @@ export const useNotes = () => {
     activeUserId.value = userId
     await loadFromCache(userId)
     isReady.value = true
-    await sync()
+    await sync({ pull: true })
   }
 
   const createNote = async (input: CreateNoteInput = {}) => {
@@ -282,7 +235,6 @@ export const useNotes = () => {
         title: note.title,
         content: note.content,
         tagNames: note.tags,
-        clientUpdatedAt: now,
       },
       createdAt: now,
       attempts: 0,
@@ -321,8 +273,6 @@ export const useNotes = () => {
       operation: "update",
       payload: {
         ...update,
-        expectedVersion: current.version,
-        clientUpdatedAt: now,
       },
       createdAt: now,
       attempts: 0,
@@ -352,7 +302,7 @@ export const useNotes = () => {
       entityType: "note",
       entityId: noteId,
       operation: archived ? "archive" : "restore",
-      payload: { expectedVersion: current.version },
+      payload: {},
       createdAt: now,
       attempts: 0,
       nextAttemptAt: null,
@@ -373,33 +323,12 @@ export const useNotes = () => {
       entityType: "note",
       entityId: noteId,
       operation: "delete",
-      payload: { expectedVersion: current.version },
+      payload: {},
       createdAt: new Date().toISOString(),
       attempts: 0,
       nextAttemptAt: null,
     })
     void sync()
-  }
-
-  const resolveConflict = async (conflictId: string, resolution: "server" | "local") => {
-    const db = getLocalDatabase()
-    const conflict = await db.conflicts.get(conflictId)
-    if (!conflict) return
-
-    await db.conflicts.delete(conflictId)
-    conflicts.value = conflicts.value.filter((item) => item.id !== conflictId)
-
-    if (resolution === "local") {
-      await updateNote(conflict.noteId, {
-        title: conflict.revision.title,
-        content: conflict.revision.content,
-        tagNames: conflict.note.tags,
-      })
-    } else {
-      const serverNote = { ...conflict.note, syncState: "synced" as const }
-      await db.cachedNotes.put(serverNote)
-      replaceNote(serverNote)
-    }
   }
 
   const activeNotes = computed(() => notes.value.filter((note) => !note.archivedAt && !note.deletedAt))
@@ -409,7 +338,6 @@ export const useNotes = () => {
     notes,
     activeNotes,
     archivedNotes,
-    conflicts,
     isReady,
     isSyncing,
     lastSyncedAt,
@@ -420,6 +348,5 @@ export const useNotes = () => {
     updateNote,
     changeArchiveState,
     deleteNote,
-    resolveConflict,
   }
 }

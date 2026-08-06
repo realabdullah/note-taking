@@ -14,7 +14,7 @@ This document describes what the application does end to end: its product goals,
 4. [Data model](#4-data-model)
 5. [Authentication & authorization](#5-authentication--authorization)
 6. [The sync engine](#6-the-sync-engine)
-7. [Conflict resolution](#7-conflict-resolution)
+7. [Save behavior](#7-save-behavior)
 8. [API reference](#8-api-reference)
 9. [Pages & user flows](#9-pages--user-flows)
 10. [Public note sharing](#10-public-note-sharing)
@@ -38,7 +38,7 @@ Key product behaviors:
 - **Local-first**: All edits are written to an IndexedDB cache in the browser first and rendered immediately (optimistic UI). The server is only reached when online.
 - **Offline capable**: The app is a PWA. Notes are readable offline from the local cache; edits made offline are queued and synced when connectivity returns.
 - **Cross-device**: The same account sees the same notes on multiple devices/browsers through the server, which is the durable source of truth.
-- **Conflict-safe**: If the same note was edited on two devices, Fieldnote does not silently overwrite anything. It preserves both versions and asks the user which one to keep.
+- **Last-write-wins**: A newer save replaces an earlier save for the same note. This keeps editing frictionless across devices.
 - **Private sharing**: Any note can be published as a read-only, unlisted snapshot with a random unguessable link. Readers cannot browse the owner's other notes.
 
 ---
@@ -80,7 +80,7 @@ The project is a single Nuxt application split into clear layers:
 │   │     │                (navigator.onLine)   (app/lib/local-db)       │
 │   │     └── sync plugin (app/plugins/sync)   cachedNotes               │
 │   └────────  $fetch API            pendingMutations                    │
-│                 │                   conflicts, syncMetadata            │
+│                 │                   syncMetadata                       │
 └─────────────────┼──────────────────────────────────────────────────────┘
                   │ HTTP /api/*
 ┌─────────────────┼──────────────── Server (Nitro) ─────────────────────┐
@@ -168,8 +168,6 @@ Indexes: `(userId, updatedAt)`, `(userId, archivedAt)`, `(userId, deletedAt)`.
 
 **`note_tags`** — join table between notes and tags (composite PK).
 
-**`note_revisions`** — preserved copies of a conflicting write (see [Conflict resolution](#7-conflict-resolution)). Stores the local user's attempted title/content with `source` (`conflict-local`) and a timestamp.
-
 **`note_shares`** — a read-only snapshot per shared note.
 
 | Column | Notes |
@@ -187,7 +185,6 @@ Database name: `fieldnote`. Four object stores defined in `app/lib/local-db.clie
 |---|---|---|
 | `cachedNotes` | `&id` (+ indexes on `userId`, `updatedAt`, `archivedAt`, `deletedAt`, `[userId+updatedAt]`) | full `Note` objects incl. `syncState` |
 | `pendingMutations` | `&id` (+ indexes on `userId`, `entityId`, `createdAt`, `nextAttemptAt`, `[userId+createdAt]`) | queued writes to send to the server |
-| `conflicts` | `&id` (+ indexes on `userId`, `noteId`, `createdAt`, `[userId+createdAt]`) | unresolved conflicts awaiting user choice |
 | `syncMetadata` | `&userId` | `{ userId, lastPulledAt, lastSyncedAt }` |
 
 `clearLocalUserData(userId)` wipes all four stores for a user (used on sign-out so one browser can be reused by another account).
@@ -195,7 +192,7 @@ Database name: `fieldnote`. Four object stores defined in `app/lib/local-db.clie
 ### 4.3 Shared types (`shared/types/note.ts`)
 
 ```ts
-type SyncState = "local" | "pending" | "syncing" | "synced" | "error" | "conflict"
+type SyncState = "local" | "pending" | "syncing" | "synced" | "error"
 ```
 
 A `Note` carries `tags: string[]`, timestamps, `version`, and an optional `syncState` used only by the client UI. A `SyncMutation` describes one queued operation (`create | update | archive | restore | delete`) with its payload, attempt count, and `nextAttemptAt` backoff.
@@ -251,13 +248,11 @@ The sync engine (`app/composables/useNotes.ts`) implements the local-first model
 local ──> pending ──> syncing ──> synced
    │                   │            │
    │                   └──> error ──┘   (transient failures, retried with backoff)
-   └─────────────────────────> conflict  (409 from server, awaits user choice)
 ```
 
 - `local` — created/edited while offline (or before the first sync).
 - `pending` — awaiting upload.
 - `synced` — in agreement with the server.
-- `conflict` — the server rejected the write because the note changed elsewhere.
 
 ### Writes (optimistic)
 
@@ -278,7 +273,7 @@ Notes in memory come from `cachedNotes`, hydrated on login via `loadFromCache`. 
 
 `sync()` runs when triggered by the sync plugin:
 
-- Triggered on: login, `online` event, window `focus`, document visibility change, every 30 s interval, and whenever a mutation is queued.
+- Triggered on: login, the `online` event, and after a changed note has been debounced and queued.
 - Steps:
   1. Guard: must be client-side, have an active user, be online, and not already syncing.
   2. Load pending mutations ordered by `createdAt`.
@@ -287,11 +282,10 @@ Notes in memory come from `cachedNotes`, hydrated on login via `loadFromCache`. 
      - `update` → `PATCH /api/notes/:id`
      - `archive` / `restore` → `POST /api/notes/:id/archive|restore`
      - `delete` → `DELETE /api/notes/:id`
-  4. On success: remove the mutation from the queue, update the cached note with the server's response (`version` and timestamps), set `syncState: "synced"`, and **bump `expectedVersion` of any later queued mutations** for the same note so they continue to chain correctly.
-  5. On a **409** (conflict): extract the conflict payload, store a `LocalConflict`, remove the mutation, mark the note `conflict` (see next section).
-  6. On other errors: increment `attempts`, set `nextAttemptAt` with exponential backoff (`2s → 5s → 15s → 60s → 5m`), set a sync error message, and stop this pass.
-  7. Finally, `pullRemoteNotes` fetches fresh server pages (cursor-paginated, limit 100) and merges them into the cache, skipping any note that still has pending local mutations so local edits are never clobbered.
-  8. If mutations remain, schedule another pass in 250 ms.
+  4. On success: remove the mutation from the queue and update the cached note with the server's response (`version` and timestamps), setting `syncState: "synced"`.
+  5. On errors: increment `attempts`, set `nextAttemptAt` with exponential backoff (`2s → 5s → 15s → 60s → 5m`), set a sync error message, and stop this pass.
+  6. A note save does not fetch the full collection: the mutation response updates only that cached note. Full pulls run on initial load and when connectivity returns.
+  7. If mutations remain, schedule another pass in 250 ms.
 
 ### Pull details
 
@@ -299,39 +293,11 @@ Notes in memory come from `cachedNotes`, hydrated on login via `loadFromCache`. 
 
 ---
 
-## 7. Conflict resolution
+## 7. Save behavior
 
-### Detection
+The editor is rich text and only emits a save after typing has paused for 700 ms. Title and tag changes follow the same debounce. A blur, navigation, or hidden tab flushes a real pending edit, but idle notes do not create sync traffic.
 
-Every server mutation is optimistic-concurrency-checked using `version`:
-
-- `updateNoteSchema` requires `expectedVersion`.
-- Archive/restore/delete require `expectedVersion` too.
-- The server only applies the change when the current row `version` equals `expectedVersion`; otherwise it returns `409 Conflict`.
-
-When an `update` hits a mismatch, the server (see `noteRepository.update`):
-
-1. **Preserves the local write** by inserting it into `note_revisions` with `source: "conflict-local"`.
-2. Returns `409` with both the current server note and the preserved revision in `data`.
-
-Archive/restore/delete mismatches return `409` with the current server note (no revision is preserved, since there is no content being lost).
-
-### Client handling
-
-On a 409, the sync engine:
-
-1. Stores `{ note: serverNote, revision: preservedLocal }` into `conflicts` and `cachedNotes` (marked `conflict`).
-2. Removes the mutation from the queue.
-3. `ConflictDialog.vue` shows the first unresolved conflict, presenting both versions side by side.
-
-### User resolution
-
-`resolveConflict(conflictId, "server" | "local")`:
-
-- **Keep this device**: re-applies the preserved local revision as a fresh update (queued as a new mutation), which will succeed because it carries the server's current version.
-- **Keep server**: overwrites the cache with the server's note (marked synced) and discards the local revision.
-
-The dialog also offers "Copy local text" so the user can merge content manually, and a close button to defer ("leave conflict for later"). Conflicts persist in IndexedDB until resolved.
+The server does not reject stale versions: writes are applied in the order it receives them, so the latest completed save is the durable version.
 
 ---
 
@@ -359,9 +325,9 @@ All endpoints live under `/api`. Mutating endpoints require a session; they retu
 | GET | `/api/notes` | ✓ | Cursor-paginated list. Query: `cursor?`, `limit` (1–100, default 40), `archived` (`true`/`false`), `tag?`. Returns `{ notes, nextCursor }` ordered by `updatedAt desc`. |
 | POST | `/api/notes` | ✓ | Create. Body: `{ id?, title?, content?, tagNames?, clientUpdatedAt? }`. Idempotent via `ON CONFLICT DO NOTHING` (safe for offline retries). Returns `201 { note }`. |
 | GET | `/api/notes/:id` | ✓ | Single note or `404`. |
-| PATCH | `/api/notes/:id` | ✓ | Update title/content/tags. Body requires `expectedVersion` plus at least one field. Returns `{ note }` or `409 { note, revision }` on conflict. |
-| DELETE | `/api/notes/:id` | ✓ | Soft delete (sets `deletedAt`). Body `{ expectedVersion }`. Returns `204`. `409` on conflict. |
-| POST | `/api/notes/:id/archive` | ✓ | Archive. Body `{ expectedVersion }`. Returns `{ note }`. `409` on conflict. |
+| PATCH | `/api/notes/:id` | ✓ | Update title/content/tags. Body requires at least one field. Returns `{ note }`. |
+| DELETE | `/api/notes/:id` | ✓ | Soft delete (sets `deletedAt`). Returns `204`. |
+| POST | `/api/notes/:id/archive` | ✓ | Archive. Returns `{ note }`. |
 | POST | `/api/notes/:id/restore` | ✓ | Restore from archive. Same contract as archive. |
 | GET | `/api/search` | ✓ | Query `q` (1–200 chars), `limit`. Searches title + content (ILIKE) and tags. Returns `{ notes }`. |
 | GET | `/api/tags` | ✓ | Tag list for the user with usage counts: `{ tags: [{ id, name, count }] }`. |
@@ -378,7 +344,7 @@ All endpoints live under `/api`. Mutating endpoints require a session; they retu
 ### Notes on server-side mutations
 
 - **Creates** accept a client-generated UUID and honor `clientUpdatedAt` (so offline-created notes keep their local ordering/timestamps). The insert uses `onConflictDoNothing`; if the row already exists the existing note is returned (idempotent retry).
-- **Updates** honor `clientUpdatedAt` for `updatedAt` and always bump `version` via `version + 1`.
+- **Updates** use the server receipt time for `updatedAt` and always bump `version` via `version + 1`; there is no version gate, so the latest save wins.
 - **Tags** are replaced wholesale on each update via `replaceTags` (delete joins, upsert tag rows by `(userId, normalizedName)`, re-insert joins).
 
 ---
@@ -411,7 +377,7 @@ Protected. Renders `NoteEditor`:
 - **Markdown toolbar + shortcuts** — heading, bold (also `⌘B`), bullet list, checklist, inline code. Bold wraps the selection.
 - **Focus mode** (`⌘⇧F`) — full-screen distraction-free writing; `Escape` exits.
 - **Editor actions** — back to list, share (opens share dialog), archive/restore, and delete (confirm dialog → soft delete → navigates away).
-- **Sync status label** — "Saved on this device" / "Autosaved" / "Conflict".
+- **Sync status label** — "Saved on this device" / "Autosaved".
 - The page redirects to `/notes` if the note is not found after ready.
 
 ### 9.4 `/search` — Search
@@ -590,7 +556,7 @@ app/
   app.config.ts            App name/description config
   assets/css/main.css      Design tokens, base styles, shared components
   components/              UI components (AppShell, NoteEditor, NoteList, SyncIndicator,
-                           ConflictDialog, NoteShareDialog, AuthPanel, install/PWA bits, …)
+                           NoteShareDialog, AuthPanel, install/PWA bits, …)
   composables/             useNotes (sync engine), useConnection, useTheme,
                            usePwaInstall, useQuickCapture
   layouts/                 default (app shell) and auth (branded center panel)

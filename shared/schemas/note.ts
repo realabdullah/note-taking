@@ -18,16 +18,12 @@ export const updateNoteSchema = z
     title: trimmedText(240).optional(),
     content: z.string().max(250_000).optional(),
     tagNames: z.array(trimmedText(40).min(1)).max(20).optional(),
-    expectedVersion: z.number().int().positive(),
-    clientUpdatedAt: z.iso.datetime().optional(),
   })
   .refine((input) => input.title !== undefined || input.content !== undefined || input.tagNames !== undefined, {
     message: "At least one note field is required",
   })
 
-export const versionMutationSchema = z.object({
-  expectedVersion: z.number().int().positive(),
-})
+export const versionMutationSchema = z.object({})
 
 export const notesQuerySchema = z.object({
   cursor: z.iso.datetime().optional(),

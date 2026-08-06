@@ -7,11 +7,11 @@ describe("note API schemas", () => {
   })
 
   it("rejects an update without a changed field", () => {
-    expect(() => updateNoteSchema.parse({ expectedVersion: 1 })).toThrow()
+    expect(() => updateNoteSchema.parse({})).toThrow()
   })
 
-  it("rejects invalid versions and oversized titles", () => {
-    expect(() => updateNoteSchema.parse({ title: "x".repeat(241), expectedVersion: 0 })).toThrow()
+  it("rejects oversized titles", () => {
+    expect(() => updateNoteSchema.parse({ title: "x".repeat(241) })).toThrow()
   })
 
   it("only accepts 256-bit base64url share tokens", () => {

@@ -1,12 +1,5 @@
 import Dexie, { type EntityTable } from "dexie"
-import type { ConflictPayload, Note, SyncMutation } from "~~/shared/types/note"
-
-export type LocalConflict = ConflictPayload & {
-  id: string
-  userId: string
-  noteId: string
-  createdAt: string
-}
+import type { Note, SyncMutation } from "~~/shared/types/note"
 
 export type SyncMetadata = {
   userId: string
@@ -17,7 +10,6 @@ export type SyncMetadata = {
 class FieldnoteDatabase extends Dexie {
   cachedNotes!: EntityTable<Note, "id">
   pendingMutations!: EntityTable<SyncMutation, "id">
-  conflicts!: EntityTable<LocalConflict, "id">
   syncMetadata!: EntityTable<SyncMetadata, "userId">
 
   constructor() {
@@ -25,7 +17,6 @@ class FieldnoteDatabase extends Dexie {
     this.version(1).stores({
       cachedNotes: "&id,userId,updatedAt,archivedAt,deletedAt,[userId+updatedAt]",
       pendingMutations: "&id,userId,entityId,createdAt,nextAttemptAt,[userId+createdAt]",
-      conflicts: "&id,userId,noteId,createdAt,[userId+createdAt]",
       syncMetadata: "&userId",
     })
   }
@@ -42,11 +33,10 @@ export const clearLocalUserData = async (userId: string) => {
   const db = getLocalDatabase()
   await db.transaction(
     "rw",
-    [db.cachedNotes, db.pendingMutations, db.conflicts, db.syncMetadata],
+    [db.cachedNotes, db.pendingMutations, db.syncMetadata],
     async () => {
       await db.cachedNotes.where("userId").equals(userId).delete()
       await db.pendingMutations.where("userId").equals(userId).delete()
-      await db.conflicts.where("userId").equals(userId).delete()
       await db.syncMetadata.delete(userId)
     },
   )

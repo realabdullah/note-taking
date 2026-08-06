@@ -10,10 +10,10 @@ import {
   or,
   sql,
 } from "drizzle-orm"
-import type { Note, NoteRevision, NotesPage, UpdateNoteInput } from "~~/shared/types/note"
+import type { Note, NotesPage, UpdateNoteInput } from "~~/shared/types/note"
 import { normalizeTag, uniqueTags } from "~~/shared/utils/note"
 import { db } from "../database/client"
-import { noteRevisions, notes, noteTags, tags } from "../database/schema"
+import { notes, noteTags, tags } from "../database/schema"
 
 type NoteRow = typeof notes.$inferSelect
 
@@ -208,61 +208,32 @@ export const noteRepository = {
     userId: string,
     noteId: string,
     input: UpdateNoteInput,
-  ): Promise<{ note: Note; conflict?: NoteRevision }> {
+  ): Promise<Note> {
     const current = await loadNoteRow(userId, noteId)
     if (!current) throw createError({ statusCode: 404, statusMessage: "Note not found" })
-
-    if (current.version !== input.expectedVersion) {
-      const [revision] = await db
-        .insert(noteRevisions)
-        .values({
-          noteId,
-          userId,
-          title: input.title ?? current.title,
-          content: input.content ?? current.content,
-          source: "conflict-local",
-        })
-        .returning()
-
-      if (!revision) throw new Error("Unable to preserve conflicting note revision")
-
-      const tagMap = await loadTagMap(userId, [noteId])
-      return {
-        note: serializeNote(current, tagMap.get(noteId)),
-        conflict: {
-          id: revision.id,
-          noteId,
-          title: revision.title,
-          content: revision.content,
-          createdAt: revision.createdAt.toISOString(),
-          source: "conflict-local",
-        },
-      }
-    }
 
     const [updated] = await db
       .update(notes)
       .set({
         title: input.title ?? current.title,
         content: input.content ?? current.content,
-        updatedAt: input.clientUpdatedAt ? new Date(input.clientUpdatedAt) : new Date(),
+        updatedAt: new Date(),
         version: sql`${notes.version} + 1`,
       })
-      .where(and(eq(notes.id, noteId), eq(notes.userId, userId), eq(notes.version, input.expectedVersion)))
+      .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)))
       .returning()
 
-    if (!updated) return this.update(userId, noteId, input)
+    if (!updated) throw createError({ statusCode: 404, statusMessage: "Note not found" })
     if (input.tagNames) await replaceTags(userId, noteId, input.tagNames)
 
     const tagMap = await loadTagMap(userId, [noteId])
-    return { note: serializeNote(updated, tagMap.get(noteId)) }
+    return serializeNote(updated, tagMap.get(noteId))
   },
 
   async setArchived(
     userId: string,
     noteId: string,
     archived: boolean,
-    expectedVersion: number,
   ): Promise<Note> {
     const [updated] = await db
       .update(notes)
@@ -276,22 +247,17 @@ export const noteRepository = {
           eq(notes.id, noteId),
           eq(notes.userId, userId),
           isNull(notes.deletedAt),
-          eq(notes.version, expectedVersion),
         ),
       )
       .returning()
 
-    if (!updated) {
-      const current = await this.get(userId, noteId)
-      if (!current) throw createError({ statusCode: 404, statusMessage: "Note not found" })
-      throw createError({ statusCode: 409, statusMessage: "Note changed on another device", data: { note: current } })
-    }
+    if (!updated) throw createError({ statusCode: 404, statusMessage: "Note not found" })
 
     const tagMap = await loadTagMap(userId, [noteId])
     return serializeNote(updated, tagMap.get(noteId))
   },
 
-  async softDelete(userId: string, noteId: string, expectedVersion: number): Promise<void> {
+  async softDelete(userId: string, noteId: string): Promise<void> {
     const [deleted] = await db
       .update(notes)
       .set({
@@ -304,16 +270,11 @@ export const noteRepository = {
           eq(notes.id, noteId),
           eq(notes.userId, userId),
           isNull(notes.deletedAt),
-          eq(notes.version, expectedVersion),
         ),
       )
       .returning({ id: notes.id })
 
-    if (!deleted) {
-      const current = await this.get(userId, noteId)
-      if (!current) return
-      throw createError({ statusCode: 409, statusMessage: "Note changed on another device", data: { note: current } })
-    }
+    if (!deleted) return
   },
 
   async listTags(userId: string): Promise<Array<{ id: string; name: string; count: number }>> {

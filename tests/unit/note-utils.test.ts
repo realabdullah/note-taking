@@ -21,4 +21,9 @@ describe("note utilities", () => {
   it("creates a compact plain-text preview", () => {
     expect(notePreview("## Result\n**Works** as expected", 20)).toBe("Result Works as exp…")
   })
+
+  it("derives readable labels from rich-text HTML", () => {
+    expect(deriveNoteTitle("", "<h2>Architecture review</h2><p>Follow-up</p>")).toBe("Architecture review")
+    expect(notePreview("<p><strong>Works</strong> as expected</p>")).toBe("Works as expected")
+  })
 })

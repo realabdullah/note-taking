@@ -238,7 +238,6 @@ Fieldnote returns standard HTTP status codes with an H3-shaped error body:
 | `401` | Missing/invalid/expired/revoked token |
 | `403` | Valid token used on an endpoint outside the read-only scope |
 | `404` | Note or shared note not found |
-| `409` | (web-app only) Optimistic-concurrency conflict; body includes `data` with the current `note` and preserved `revision` |
 | `400` | Invalid query or body (e.g. malformed pagination cursor) |
 
 ---

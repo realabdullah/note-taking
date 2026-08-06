@@ -56,7 +56,9 @@
 					</ul>
 					<span v-else class="mono">FIELDNOTE</span>
 				</div>
-				<div class="shared-note__content">{{ data.note.content }}</div>
+				<!-- Content is sanitized on the server before it reaches this public page. -->
+				<!-- eslint-disable-next-line vue/no-v-html -->
+				<div class="shared-note__content" v-html="data.note.content" />
 			</div>
 		</article>
 

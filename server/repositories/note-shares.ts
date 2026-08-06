@@ -4,6 +4,7 @@ import type { PublicNote } from "~~/shared/types/note-share";
 import { db } from "../database/client";
 import { noteShares, notes } from "../database/schema";
 import { noteRepository } from "./notes";
+import { sanitizeRichText } from "../utils/rich-text";
 
 type NoteShareRecord = {
 	token: string;
@@ -87,7 +88,7 @@ export const noteShareRepository = {
 
 		return {
 			title: row.title,
-			content: row.content,
+			content: sanitizeRichText(row.content),
 			tags: row.tags,
 			createdAt: row.noteCreatedAt.toISOString(),
 			updatedAt: row.noteUpdatedAt.toISOString(),

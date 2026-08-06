@@ -18,6 +18,9 @@ export const deriveNoteTitle = (title: string, content: string) => {
   if (explicitTitle) return explicitTitle
 
   const firstMeaningfulLine = content
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>|<\/h[1-6]>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
     .split("\n")
     .map((line) => line.replace(/^#{1,6}\s*/, "").trim())
     .find(Boolean)
@@ -27,6 +30,11 @@ export const deriveNoteTitle = (title: string, content: string) => {
 }
 
 export const notePreview = (content: string, length = 150) => {
-  const plain = content.replace(/[#>*_`~-]/g, "").replace(/\s+/g, " ").trim()
+  const plain = content
+    .replace(/<br\s*\/?>|<\/p>|<\/h[1-6]>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/[#>*_`~-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
   return plain.length > length ? `${plain.slice(0, length - 1)}…` : plain
 }
