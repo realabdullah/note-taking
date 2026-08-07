@@ -1,6 +1,6 @@
 export type AppearancePreference = "light" | "dark" | "system";
 export type ThemePreference = AppearancePreference;
-export type ColorTheme = "aubergine" | "moss" | "tide" | "clay";
+export type ColorTheme = "aubergine" | "moss" | "tide" | "clay" | "cobalt" | "poppy" | "lagoon" | "orchid";
 
 export const useTheme = () => {
 	const preference = useCookie<AppearancePreference>("fieldnote-theme", {

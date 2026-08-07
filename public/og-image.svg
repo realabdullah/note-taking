@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#2F1838"/>
+  <circle cx="1030" cy="110" r="270" fill="#6C3B78" opacity=".42"/>
+  <circle cx="1080" cy="570" r="220" fill="#E9673F" opacity=".9"/>
+  <path d="M0 520C220 460 310 560 510 500C730 434 830 500 1200 390V630H0V520Z" fill="#3E214B"/>
+  <path d="M80 94H1120" stroke="#E8DDCF" stroke-opacity=".24"/>
+  <text x="80" y="178" fill="#E8DDCF" font-family="Georgia, serif" font-size="94" letter-spacing="-4">Fieldnote</text>
+  <text x="84" y="238" fill="#E8DDCF" fill-opacity=".7" font-family="Arial, sans-serif" font-size="22" letter-spacing="5">A LIVING PLACE FOR THOUGHTS</text>
+  <rect x="84" y="330" width="188" height="8" rx="4" fill="#D7ED93"/>
+  <text x="84" y="410" fill="#E8DDCF" font-family="Arial, sans-serif" font-size="28">Capture clearly.</text>
+  <text x="84" y="452" fill="#E8DDCF" fill-opacity=".72" font-family="Arial, sans-serif" font-size="28">Return to what matters.</text>
+  <circle cx="1050" cy="530" r="52" fill="#D7ED93"/>
+  <path d="M1028 530h44M1050 508v44" stroke="#2F1838" stroke-width="7" stroke-linecap="round"/>
+</svg>

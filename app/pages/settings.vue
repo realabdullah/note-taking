@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	import { ArrowLeft, Check, KeyRound, Laptop, Moon, Palette, ShieldCheck, Sun } from "@lucide/vue";
+	import { ArrowLeft, Check, KeyRound, Laptop, Moon, Palette, Search, ShieldCheck, Sun } from "@lucide/vue";
 	import { authClient } from "~/lib/auth-client";
 	import type { AppearancePreference, ColorTheme } from "~/composables/useTheme";
 
@@ -13,6 +13,7 @@
 	const pending = ref(false);
 	const message = ref("");
 	const errorMessage = ref("");
+	const paletteQuery = ref("");
 
 	const appearances: Array<{
 		value: AppearancePreference;
@@ -55,7 +56,39 @@
 			description: "Espresso, terracotta and ochre",
 			swatches: ["bg-[oklch(0.255_0.07_43)]", "bg-[oklch(0.64_0.18_29)]", "bg-[oklch(0.8_0.13_87)]"],
 		},
+		{
+			value: "cobalt",
+			label: "Cobalt",
+			description: "Ink blue, tangerine and mint",
+			swatches: ["bg-[oklch(0.24_0.075_258)]", "bg-[oklch(0.68_0.2_43)]", "bg-[oklch(0.78_0.12_165)]"],
+		},
+		{
+			value: "poppy",
+			label: "Poppy",
+			description: "Bordeaux, vermilion and blush",
+			swatches: ["bg-[oklch(0.25_0.085_12)]", "bg-[oklch(0.66_0.21_28)]", "bg-[oklch(0.8_0.12_355)]"],
+		},
+		{
+			value: "lagoon",
+			label: "Lagoon",
+			description: "Deep teal, lemon and aqua",
+			swatches: ["bg-[oklch(0.24_0.07_205)]", "bg-[oklch(0.78_0.16_95)]", "bg-[oklch(0.76_0.13_180)]"],
+		},
+		{
+			value: "orchid",
+			label: "Orchid",
+			description: "Royal violet, lime and lilac",
+			swatches: ["bg-[oklch(0.25_0.09_292)]", "bg-[oklch(0.78_0.18_112)]", "bg-[oklch(0.74_0.14_325)]"],
+		},
 	];
+
+	const showPaletteSearch = computed(() => colorThemes.length > 8);
+	const visibleColorThemes = computed(() => {
+		const query = paletteQuery.value.trim().toLowerCase();
+		if (!query) return colorThemes;
+
+		return colorThemes.filter(theme => `${theme.label} ${theme.description}`.toLowerCase().includes(query));
+	});
 
 	const changePassword = async () => {
 		message.value = "";
@@ -128,34 +161,61 @@
 							A palette changes the whole notebook, not just one accent.
 						</p>
 					</header>
-					<div class="grid gap-3 sm:grid-cols-2">
-						<button
-							v-for="theme in colorThemes"
-							:key="theme.value"
-							type="button"
-							:aria-pressed="colorTheme === theme.value"
-							class="group relative min-h-40 overflow-hidden rounded-[28px_28px_8px_28px] bg-raised p-5 text-left shadow-[0_14px_40px_oklch(0.18_0.05_303/0.1)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_22px_50px_oklch(0.18_0.05_303/0.16)] active:scale-96"
-							@click="setColorTheme(theme.value)"
-						>
-							<span class="mb-8 flex -space-x-2" aria-hidden="true">
-								<i
-									v-for="swatch in theme.swatches"
-									:key="swatch"
-									class="size-9 rounded-full ring-2 ring-raised"
-									:class="swatch"
-								/>
-							</span>
-							<strong class="block font-serif text-2xl font-semibold tracking-[-0.03em]">{{
-								theme.label
-							}}</strong>
-							<small class="mt-1 block text-xs leading-5 text-ink-soft">{{ theme.description }}</small>
-							<span
-								v-if="colorTheme === theme.value"
-								class="absolute right-4 top-4 grid size-7 place-items-center rounded-full bg-ink text-canvas"
+					<div>
+						<div v-if="showPaletteSearch" class="mb-4 flex flex-wrap items-center justify-between gap-3">
+							<label
+								class="flex min-h-11 min-w-56 flex-1 items-center gap-2 rounded-full bg-surface px-4 text-sm text-ink-soft shadow-[inset_0_0_0_1px_var(--line)] focus-within:shadow-[inset_0_0_0_2px_var(--focus)]"
 							>
-								<Check :size="15" aria-hidden="true" />
-							</span>
-						</button>
+								<Search :size="16" aria-hidden="true" />
+								<span class="sr-only">Search color styles</span>
+								<input
+									v-model="paletteQuery"
+									type="search"
+									placeholder="Search styles"
+									class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-ink-faint"
+								/>
+							</label>
+							<p class="text-xs text-ink-faint">
+								{{ visibleColorThemes.length }} of {{ colorThemes.length }} styles
+							</p>
+						</div>
+						<div class="grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-3">
+							<button
+								v-for="theme in visibleColorThemes"
+								:key="theme.value"
+								type="button"
+								:aria-pressed="colorTheme === theme.value"
+								class="group relative flex h-full min-h-40 flex-col overflow-hidden rounded-[28px_28px_8px_28px] bg-raised p-5 text-left shadow-[0_14px_40px_oklch(0.18_0.05_303/0.1)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_22px_50px_oklch(0.18_0.05_303/0.16)] active:scale-96"
+								@click="setColorTheme(theme.value)"
+							>
+								<span class="mb-8 flex -space-x-2 shrink-0" aria-hidden="true">
+									<i
+										v-for="swatch in theme.swatches"
+										:key="swatch"
+										class="size-9 rounded-full ring-2 ring-raised"
+										:class="swatch"
+									/>
+								</span>
+								<strong class="block font-serif text-2xl font-semibold tracking-[-0.03em]">{{
+									theme.label
+								}}</strong>
+								<small class="mt-1 block text-xs leading-5 text-ink-soft">{{
+									theme.description
+								}}</small>
+								<span
+									v-if="colorTheme === theme.value"
+									class="absolute right-4 top-4 grid size-7 place-items-center rounded-full bg-ink text-canvas"
+								>
+									<Check :size="15" aria-hidden="true" />
+								</span>
+							</button>
+						</div>
+						<p
+							v-if="showPaletteSearch && !visibleColorThemes.length"
+							class="rounded-3xl bg-surface p-8 text-center text-sm text-ink-soft"
+						>
+							No color styles match “{{ paletteQuery }}”.
+						</p>
 					</div>
 				</section>
 

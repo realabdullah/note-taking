@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	import { Check, Copy, Link2, LoaderCircle, Unlink, X } from "@lucide/vue";
+	import { Check, Copy, Link2, LoaderCircle, RefreshCw, Unlink, X } from "@lucide/vue";
 	import type { NoteShare } from "~~/shared/types/note-share";
 	import type { SyncState } from "~~/shared/types/note";
 
@@ -15,9 +15,12 @@
 	const share = ref<NoteShare | null>(null);
 	const isLoading = ref(false);
 	const isMutating = ref(false);
+	const isUpdating = ref(false);
+	const isRevoking = ref(false);
 	const copied = ref(false);
 	const errorMessage = ref("");
 	const canCreateShare = computed(() => props.syncState === "synced");
+	const isBusy = computed(() => isMutating.value || isUpdating.value || isRevoking.value);
 
 	const errorText = (error: unknown) => {
 		const fetchError = error as { statusCode?: number; statusMessage?: string };
@@ -57,7 +60,7 @@
 	};
 
 	const revokeShare = async () => {
-		isMutating.value = true;
+		isRevoking.value = true;
 		errorMessage.value = "";
 
 		try {
@@ -67,7 +70,23 @@
 		} catch (error) {
 			errorMessage.value = errorText(error);
 		} finally {
-			isMutating.value = false;
+			isRevoking.value = false;
+		}
+	};
+
+	const updateShare = async () => {
+		isUpdating.value = true;
+		errorMessage.value = "";
+
+		try {
+			const response = await $fetch<{ share: NoteShare }>(`/api/notes/${props.noteId}/share`, {
+				method: "PATCH",
+			});
+			share.value = response.share;
+		} catch (error) {
+			errorMessage.value = errorText(error);
+		} finally {
+			isUpdating.value = false;
 		}
 	};
 
@@ -130,8 +149,8 @@
 			<p class="eyebrow">Public link</p>
 			<h2 id="share-title">Share this note</h2>
 			<p class="share-dialog__intro">
-				Anyone with the link can read a snapshot of this note. Later edits stay private, and readers cannot
-				browse your other notes.
+				Anyone with the link can read a snapshot of this note. Later edits stay private until you publish an
+				update, and readers cannot browse your other notes.
 			</p>
 
 			<div v-if="isLoading" class="share-dialog__loading" role="status">
@@ -149,16 +168,31 @@
 						{{ copied ? "Copied" : "Copy" }}
 					</button>
 				</div>
-				<p class="share-dialog__hint mono">
-					LIVE · CREATED {{ new Date(share.createdAt).toLocaleDateString() }}
+				<p class="share-dialog__hint mono" :class="{ 'share-dialog__hint--stale': share.isStale }">
+					{{ share.isStale ? "UPDATE AVAILABLE" : "LIVE" }} · SHARED
+					{{ new Date(share.noteUpdatedAt).toLocaleDateString() }}
 				</p>
+				<div v-if="share.isStale" class="share-dialog__update-notice">
+					<strong>This link has an older snapshot</strong>
+					<span>Publish the latest title, content, and tags while keeping the same link.</span>
+				</div>
+				<button
+					class="button button--primary share-dialog__update"
+					type="button"
+					:disabled="isBusy"
+					@click="updateShare"
+				>
+					<LoaderCircle v-if="isUpdating" class="share-dialog__spinner" :size="17" aria-hidden="true" />
+					<RefreshCw v-else :size="17" aria-hidden="true" />
+					Update shared note
+				</button>
 				<button
 					class="button button--quiet button--danger share-dialog__revoke"
 					type="button"
-					:disabled="isMutating"
+					:disabled="isBusy"
 					@click="revokeShare"
 				>
-					<LoaderCircle v-if="isMutating" class="share-dialog__spinner" :size="17" aria-hidden="true" />
+					<LoaderCircle v-if="isRevoking" class="share-dialog__spinner" :size="17" aria-hidden="true" />
 					<Unlink v-else :size="17" aria-hidden="true" />
 					Revoke link
 				</button>
@@ -180,7 +214,7 @@
 				<button
 					class="button button--primary share-dialog__create"
 					type="button"
-					:disabled="isMutating || !canCreateShare"
+					:disabled="isBusy || !canCreateShare"
 					@click="createShare"
 				>
 					<LoaderCircle v-if="isMutating" class="share-dialog__spinner" :size="17" aria-hidden="true" />
@@ -301,6 +335,34 @@
 		color: var(--success);
 		font-size: 0.62rem;
 		letter-spacing: 0.05em;
+	}
+
+	.share-dialog__hint--stale {
+		color: var(--accent-strong);
+	}
+
+	.share-dialog__update-notice {
+		display: grid;
+		gap: 0.25rem;
+		margin-bottom: 0.8rem;
+		border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+		border-radius: var(--radius-md);
+		padding: 0.9rem 1rem;
+		background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+	}
+
+	.share-dialog__update-notice strong {
+		font-size: 0.9rem;
+	}
+
+	.share-dialog__update-notice span {
+		color: var(--ink-soft);
+		font-size: 0.82rem;
+	}
+
+	.share-dialog__update {
+		width: 100%;
+		margin-bottom: 0.6rem;
 	}
 
 	.share-dialog__revoke {

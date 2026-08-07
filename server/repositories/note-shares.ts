@@ -9,13 +9,20 @@ import { sanitizeRichText } from "../utils/rich-text";
 type NoteShareRecord = {
 	token: string;
 	createdAt: Date;
+	noteUpdatedAt: Date;
+	sourceUpdatedAt: Date;
 };
 
 const createToken = () => randomBytes(32).toString("base64url");
 
 const findForOwner = async (userId: string, noteId: string): Promise<NoteShareRecord | null> => {
 	const [share] = await db
-		.select({ token: noteShares.token, createdAt: noteShares.createdAt })
+		.select({
+			token: noteShares.token,
+			createdAt: noteShares.createdAt,
+			noteUpdatedAt: noteShares.noteUpdatedAt,
+			sourceUpdatedAt: notes.updatedAt,
+		})
 		.from(noteShares)
 		.innerJoin(notes, eq(noteShares.noteId, notes.id))
 		.where(and(eq(noteShares.noteId, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)))
@@ -49,13 +56,43 @@ export const noteShareRepository = {
 				.onConflictDoNothing()
 				.returning({ token: noteShares.token, createdAt: noteShares.createdAt });
 
-			if (created) return created;
+			if (created) {
+				return {
+					...created,
+					noteUpdatedAt: new Date(note.updatedAt),
+					sourceUpdatedAt: new Date(note.updatedAt),
+				};
+			}
 
 			const concurrentShare = await findForOwner(userId, noteId);
 			if (concurrentShare) return concurrentShare;
 		}
 
 		throw new Error("Unable to create note share");
+	},
+
+	async update(userId: string, noteId: string): Promise<NoteShareRecord> {
+		const note = await noteRepository.get(userId, noteId);
+		if (!note) throw createError({ statusCode: 404, statusMessage: "Note not found" });
+
+		const existing = await findForOwner(userId, noteId);
+		if (!existing) throw createError({ statusCode: 404, statusMessage: "Share link not found" });
+
+		const noteUpdatedAt = new Date(note.updatedAt);
+		const [updated] = await db
+			.update(noteShares)
+			.set({
+				title: note.title,
+				content: note.content,
+				tags: note.tags,
+				noteCreatedAt: new Date(note.createdAt),
+				noteUpdatedAt,
+			})
+			.where(eq(noteShares.noteId, noteId))
+			.returning({ token: noteShares.token, createdAt: noteShares.createdAt });
+
+		if (!updated) throw createError({ statusCode: 404, statusMessage: "Share link not found" });
+		return { ...updated, noteUpdatedAt, sourceUpdatedAt: noteUpdatedAt };
 	},
 
 	async revoke(userId: string, noteId: string): Promise<boolean> {

@@ -337,7 +337,8 @@ All endpoints live under `/api`. Mutating endpoints require a session; they retu
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/notes/:id/share` | ✓ | Fetch existing share for the note (`{ share }` or `{ share: null }`). Cache-Control: `private, no-store`. |
-| POST | `/api/notes/:id/share` | ✓ | Create share link. Returns `{ share: { url, createdAt } }`. Idempotent. |
+| POST | `/api/notes/:id/share` | ✓ | Create share link. Returns `{ share: { url, createdAt, noteUpdatedAt, isStale } }`. Idempotent. |
+| PATCH | `/api/notes/:id/share` | ✓ | Refresh the existing public snapshot from the current note while preserving its URL. Returns the refreshed share. |
 | DELETE | `/api/notes/:id/share` | ✓ | Revoke the share. Returns `204`. |
 | GET | `/api/public/notes/:token` | — | Read the public snapshot. Returns `{ note: PublicNote }` or `404`. Sets `Cache-Control: private, no-store`, `Referrer-Policy: no-referrer`, `X-Robots-Tag: noindex, nofollow, noarchive`. |
 
@@ -417,7 +418,7 @@ Sharing is **snapshot-based and unlisted**:
 
 - The owner opens the share dialog from the editor. The dialog explains the note must be synced first (shares are created from the server copy), then `POST /api/notes/:id/share`.
 - The server stores a one-time snapshot (title/content/tags + timestamps) in `note_shares` with a 256-bit base64url random token — effectively unguessable. A note can have at most one share.
-- The dialog shows the full URL (`<origin>/share/<token>`), copy button, creation date, and a **Revoke link** action that deletes the snapshot. Revoking makes the token 404 immediately.
+- The dialog shows the full URL (`<origin>/share/<token>`), copy button, snapshot status, and a **Revoke link** action that deletes the snapshot. If the note is newer than the snapshot, it offers **Update shared note**; refreshing keeps the same URL and publishes the latest title, content, and tags. Revoking makes the token 404 immediately.
 - Readers see only that note's snapshot — no navigation to the rest of the notebook.
 - Security headers on the public page: `no-referrer`, `noindex/nofollow/noarchive`, and a restrictive `Permissions-Policy`.
 

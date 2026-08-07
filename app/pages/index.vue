@@ -4,7 +4,15 @@
 	import type { Note } from "~~/shared/types/note";
 
 	definePageMeta({ middleware: "auth" });
-	useSeoMeta({ title: "Fieldnote · A living place for thoughts" });
+	const ogImageUrl = new URL("/og-image.svg", useRequestURL().origin).toString();
+	useSeoMeta({
+		title: "Fieldnote · A living place for thoughts",
+		description: "A quiet, local-first notebook that follows you across devices.",
+		ogType: "website",
+		ogImage: ogImageUrl,
+		ogImageAlt: "Fieldnote — a quiet place for thoughts",
+		twitterCard: "summary_large_image",
+	});
 
 	type Space = "write" | "library" | "search" | "archive";
 	type ViewTransition = { finished: Promise<void> };

@@ -4,8 +4,12 @@
 		ArrowLeft,
 		Bold,
 		Code2,
+		Heading1,
 		Heading2,
+		Heading3,
 		List,
+		ListOrdered,
+		Minus,
 		Redo2,
 		RotateCcw,
 		Share2,
@@ -172,12 +176,33 @@
 			<i aria-hidden="true" />
 			<button
 				type="button"
-				aria-label="Heading"
+				aria-label="Heading 1"
+				title="Heading 1"
+				:aria-pressed="editor?.isActive('heading', { level: 1 })"
+				@mousedown.prevent
+				@click="editor?.chain().focus().toggleHeading({ level: 1 }).run()"
+			>
+				<Heading1 :size="18" aria-hidden="true" />
+			</button>
+			<button
+				type="button"
+				aria-label="Heading 2"
+				title="Heading 2"
 				:aria-pressed="editor?.isActive('heading', { level: 2 })"
 				@mousedown.prevent
 				@click="editor?.chain().focus().toggleHeading({ level: 2 }).run()"
 			>
 				<Heading2 :size="18" aria-hidden="true" />
+			</button>
+			<button
+				type="button"
+				aria-label="Heading 3"
+				title="Heading 3"
+				:aria-pressed="editor?.isActive('heading', { level: 3 })"
+				@mousedown.prevent
+				@click="editor?.chain().focus().toggleHeading({ level: 3 }).run()"
+			>
+				<Heading3 :size="18" aria-hidden="true" />
 			</button>
 			<button
 				type="button"
@@ -191,6 +216,7 @@
 			<button
 				type="button"
 				aria-label="Bullet list"
+				title="Bullet list"
 				:aria-pressed="editor?.isActive('bulletList')"
 				@mousedown.prevent
 				@click="editor?.chain().focus().toggleBulletList().run()"
@@ -199,7 +225,27 @@
 			</button>
 			<button
 				type="button"
+				aria-label="Numbered list"
+				title="Numbered list"
+				:aria-pressed="editor?.isActive('orderedList')"
+				@mousedown.prevent
+				@click="editor?.chain().focus().toggleOrderedList().run()"
+			>
+				<ListOrdered :size="18" aria-hidden="true" />
+			</button>
+			<button
+				type="button"
+				aria-label="Horizontal line"
+				title="Horizontal line"
+				@mousedown.prevent
+				@click="editor?.chain().focus().setHorizontalRule().run()"
+			>
+				<Minus :size="18" aria-hidden="true" />
+			</button>
+			<button
+				type="button"
 				aria-label="Code block"
+				title="Code block"
 				:aria-pressed="editor?.isActive('codeBlock')"
 				@mousedown.prevent
 				@click="editor?.chain().focus().toggleCodeBlock().run()"
@@ -465,8 +511,85 @@
 		letter-spacing: -0.04em;
 		line-height: 1;
 	}
+	:deep(.ink-canvas h1),
+	:deep(.ink-canvas h2),
+	:deep(.ink-canvas h3) {
+		text-wrap: balance;
+	}
+	:deep(.ink-canvas h1) {
+		margin: 1.6em 0 0.45em;
+		color: oklch(0.97 0.02 84);
+		font-size: 2.5em;
+		font-weight: 650;
+		letter-spacing: -0.055em;
+		line-height: 0.98;
+	}
+	:deep(.ink-canvas h3) {
+		margin: 1.4em 0 0.45em;
+		color: var(--thread);
+		font-size: 1.35em;
+		font-weight: 620;
+		letter-spacing: -0.03em;
+		line-height: 1.1;
+	}
+	:deep(.ink-canvas h4),
+	:deep(.ink-canvas h5) {
+		margin: 1.25em 0 0.4em;
+		color: oklch(0.84 0.035 84);
+		font-family: var(--font-sans);
+		font-size: 0.82em;
+		font-weight: 750;
+		letter-spacing: 0.06em;
+		line-height: 1.25;
+		text-transform: uppercase;
+	}
+	:deep(.ink-canvas h5) {
+		color: oklch(0.7 0.035 84);
+		font-size: 0.68em;
+	}
+	:deep(.ink-canvas ul),
+	:deep(.ink-canvas ol) {
+		margin: 0 0 1.2em;
+		padding-inline-start: 1.35em;
+		list-style-position: outside;
+	}
 	:deep(.ink-canvas ul) {
-		padding-inline-start: 1.25em;
+		list-style-type: disc;
+	}
+	:deep(.ink-canvas ol) {
+		list-style-type: decimal;
+	}
+	:deep(.ink-canvas ul ul) {
+		list-style-type: circle;
+	}
+	:deep(.ink-canvas ol ol) {
+		list-style-type: lower-alpha;
+	}
+	:deep(.ink-canvas li) {
+		padding-inline-start: 0.25em;
+	}
+	:deep(.ink-canvas li p) {
+		margin-bottom: 0.45em;
+	}
+	:deep(.ink-canvas li::marker) {
+		color: var(--thread);
+		font-weight: 650;
+	}
+	:deep(.ink-canvas blockquote) {
+		margin: 1.5em 0;
+		border-inline-start: 3px solid var(--thread);
+		padding: 0.15em 0 0.15em 1.1em;
+		color: oklch(0.78 0.035 84);
+		font-style: italic;
+	}
+	:deep(.ink-canvas hr) {
+		margin: 2.5rem 0;
+		border: 0;
+		border-top: 1px solid oklch(0.955 0.025 84 / 0.28);
+	}
+	:deep(.ink-canvas strong) {
+		color: oklch(0.98 0.02 84);
+		font-weight: 700;
 	}
 	:deep(.ink-canvas pre) {
 		overflow-x: auto;

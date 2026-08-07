@@ -6,6 +6,8 @@
 
 	const route = useRoute();
 	const token = computed(() => String(route.params.token));
+	const requestOrigin = useRequestURL().origin;
+	const ogImageUrl = computed(() => new URL(`/og/share/${token.value}.svg`, requestOrigin).toString());
 	const { data, error } = await useFetch<{ note: PublicNote }>(() => `/api/public/notes/${token.value}`);
 
 	if (error.value && import.meta.server) {
@@ -16,6 +18,10 @@
 	useSeoMeta({
 		title: () => (data.value?.note.title ? `${data.value.note.title} · Fieldnote` : "Shared note · Fieldnote"),
 		description: "A note shared with you on Fieldnote.",
+		ogType: "article",
+		ogImage: () => ogImageUrl.value,
+		ogImageAlt: "Fieldnote — a quiet place for thoughts",
+		twitterCard: "summary_large_image",
 		robots: "noindex, nofollow, noarchive",
 	});
 
@@ -172,10 +178,117 @@
 
 	.shared-note__content {
 		padding-top: 1.25rem;
-		font-size: clamp(1rem, 0.25vw + 0.94rem, 1.05rem);
-		line-height: 1.68;
+		font-family: var(--font-serif);
+		font-size: clamp(1.08rem, 1.35vw, 1.28rem);
+		font-weight: 350;
+		line-height: 1.62;
 		overflow-wrap: anywhere;
-		white-space: pre-wrap;
+	}
+
+	:deep(.shared-note__content p) {
+		margin: 0 0 1.15em;
+	}
+
+	:deep(.shared-note__content :is(h1, h2, h3)) {
+		text-wrap: balance;
+	}
+
+	:deep(.shared-note__content h1) {
+		margin: 1.6em 0 0.45em;
+		color: var(--ink);
+		font-size: 2.5em;
+		font-weight: 650;
+		letter-spacing: -0.055em;
+		line-height: 0.98;
+	}
+
+	:deep(.shared-note__content h2) {
+		margin: 1.5em 0 0.5em;
+		color: var(--accent-strong);
+		font-size: 2em;
+		font-weight: 620;
+		letter-spacing: -0.04em;
+		line-height: 1;
+	}
+
+	:deep(.shared-note__content h3) {
+		margin: 1.4em 0 0.45em;
+		color: var(--accent-strong);
+		font-size: 1.35em;
+		font-weight: 620;
+		letter-spacing: -0.03em;
+		line-height: 1.1;
+	}
+
+	:deep(.shared-note__content h4),
+	:deep(.shared-note__content h5) {
+		margin: 1.25em 0 0.4em;
+		color: var(--ink-soft);
+		font-family: var(--font-sans);
+		font-size: 0.82em;
+		font-weight: 750;
+		letter-spacing: 0.06em;
+		line-height: 1.25;
+		text-transform: uppercase;
+	}
+
+	:deep(.shared-note__content h5) {
+		color: var(--ink-faint);
+		font-size: 0.68em;
+	}
+
+	:deep(.shared-note__content :is(ul, ol)) {
+		margin: 0 0 1.2em;
+		padding-inline-start: 1.5em;
+		list-style-position: outside;
+	}
+
+	:deep(.shared-note__content ul) {
+		list-style-type: disc;
+	}
+
+	:deep(.shared-note__content ol) {
+		list-style-type: decimal;
+	}
+
+	:deep(.shared-note__content ul ul) {
+		list-style-type: circle;
+	}
+
+	:deep(.shared-note__content ol ol) {
+		list-style-type: lower-alpha;
+	}
+
+	:deep(.shared-note__content li) {
+		padding-inline-start: 0.25em;
+	}
+
+	:deep(.shared-note__content li p) {
+		margin-bottom: 0.45em;
+	}
+
+	:deep(.shared-note__content li::marker) {
+		color: var(--accent-strong);
+		font-weight: 650;
+	}
+
+	:deep(.shared-note__content blockquote) {
+		margin: 1.5em 0;
+		border-inline-start: 3px solid var(--accent);
+		padding: 0.15em 0 0.15em 1.1em;
+		color: var(--ink-soft);
+		font-style: italic;
+	}
+
+	:deep(.shared-note__content hr) {
+		margin: 2.5rem 0;
+		border: 0;
+		border-top: 1px solid var(--line-strong);
+	}
+
+	:deep(.shared-note__content strong) {
+		color: var(--ink);
+		font-weight: 700;
 	}
 
 	.shared-missing {

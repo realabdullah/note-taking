@@ -1,6 +1,8 @@
 export type NoteShare = {
 	url: string;
 	createdAt: string;
+	noteUpdatedAt: string;
+	isStale: boolean;
 };
 
 export type PublicNote = {
